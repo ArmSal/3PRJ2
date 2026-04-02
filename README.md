@@ -82,7 +82,7 @@ docker compose up --build
 |------|-----|--------|
 | **C - DevOps** | Armend SALIHU | [@ArmSal](https://github.com/ArmSal) |
 | **B - Backend** | Babikir IBRAHIM AL KHALIL | - |
-| **A - Frontend** | Fedi Khaldi | - |
+| **A - Frontend** | Fedi Khaldi | [@fedi005](https://github.com/fedi005) |
 | **D - Data/Jeu** | Abid RAKHIS AHMAT | - |
 
 ## �🛠 Plan d'action par rôle
