@@ -1,0 +1,43 @@
+services:
+  - type: postgres
+    name: gaming-db
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: gaming-backend
+    plan: free
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: gaming-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: gaming-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: gaming-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: gaming-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
+    healthCheckPath: /
+
+  - type: web
+    name: gaming-frontend
+    plan: free
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://gaming-backend.onrender.com
