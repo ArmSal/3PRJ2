@@ -26,7 +26,7 @@ jobs:
           docker tag gaming-frontend:${{ github.sha }} gaming-frontend:latest
 
       - name: Test Docker Compose
-        run: docker-compose config
+        run: docker compose config
 
   deploy:
     needs: build
@@ -44,5 +44,5 @@ jobs:
           script: |
             cd /opt/gaming-platform
             git pull origin main
-            docker-compose down
-            docker-compose up --build -d
+            docker compose down
+            docker compose up --build -d
