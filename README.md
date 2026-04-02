@@ -1,224 +1,101 @@
-# Discord-Gaming Plus
+# Discord Gaming Plus - Hackathon 48h
 
-A cloud-native social gaming platform with real-time chat and browser mini-games, built for the 3PRJ2 Hackathon.
+## 🎯 Objectif
 
-## Team
+Projet MVP du hackathon Discord Gaming Plus avec stack : Vue 3 + Tailwind + Node.js + Express + Socket.io + MySQL et Docker.
 
-| Role | Name | GitHub |
-|------|------|--------|
-| DevOps Lead | Armend SALIHU | [@ArmSal](https://github.com/ArmSal) |
-| Backend Developer | Babikir IBRAHIM AL KHALIL | - |
-| Frontend Developer | Fedi Khaldi | - |
-| Full-Stack/Games Developer | Abid RAKHIS AHMAT | - |
+## 📁 Architecture du projet
 
-## Architecture
+- `backend/`
+  - `server.js` : API + Socket.io + connexion MySQL
+  - `package.json` : dépendances et script `npm run dev`
+  - `Dockerfile` : build container backend
+- `frontend/`
+  - `index.html` + `src/main.js` + `src/App.vue` : app Vue + UI Discord-like + chat + quiz
+  - `package.json` : dépendances et scripts Vite (`dev`, `build`, `serve`)
+  - `Dockerfile` : build container frontend
+- `docker-compose.yml` : orchestration MySQL + backend + frontend
+- `.gitignore`
+- `README.md` (vous êtes ici)
 
-```
-┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
-│   Frontend      │  HTTP   │    Backend      │  SQL    │     MySQL       │
-│   Vue.js +      │◄───────►│   Node.js +     │◄───────►│    Database     │
-│   Socket.io     │ WebSocket│  Express +      │         │                 │
-│   (Nginx)       │         │   Socket.io     │         │                 │
-└─────────────────┘         └─────────────────┘         └─────────────────┘
-        │                                                        │
-        └──────────────── Docker Compose ──────────────────────┘
-```
+## 🧩 Fonctionnalités implémentées
 
-### Tech Stack
+### Backend
 
-**Frontend:**
-- Vue.js 3 (Composition API)
-- Vue Router
-- Socket.io-client (real-time communication)
-- Axios (HTTP requests)
-- Canvas API (mini-games)
-- Nginx (static file serving)
+- Endpoint `GET /` : test de health
+- Endpoint `GET /api/messages` : récupération des 100 derniers messages chat
+- Endpoint `GET /api/leaderboard` : top 10 des meilleurs scores quiz
+- Socket.io
+  - `chat:message` : stocke en DB et diffuse à tous
+  - `quiz:answer` : calcule bonne réponse, score 0/1, stocke, diffuse `quiz:result`
+- Base MySQL (Automatique) : tables `messages` et `quiz_scores`
 
-**Backend:**
-- Node.js 18
-- Express.js (REST API)
-- Socket.io (WebSocket connections)
-- MySQL2 (database driver)
-- bcryptjs (password hashing)
-- jsonwebtoken (JWT authentication)
+### Frontend
 
-**DevOps:**
-- Docker & Docker Compose
-- GitHub Actions (CI/CD)
-- MySQL 8 (database)
+- UI Discord-like (layout sidebar + chat + quiz + leaderboard)
+- Auth pseudo simple (stocké localStorage)
+- Chat en temps réel via Socket.io
+- Quiz local dans frontend, résultats reçus du backend
+- leaderboard rafraîchi après chaque interaction quiz
 
-## Features
+## 🚀 Lancement local
 
-### Must Have (MVP)
-- [x] User registration & login (JWT auth)
-- [x] Real-time text chat with Socket.io
-- [x] Guild/Community creation
-- [x] Docker containerization (3+ services)
-- [x] GitHub Actions CI/CD
+1. Lancer les services :
+   - `docker compose up --build` ou
+   - `docker compose up --build -d`
+2. Vérifier :
+   - API : `http://localhost:3000/`
+   - Frontend : `http://localhost:5173/`
+3. Stopper : `docker compose down`
 
-### Should Have
-- [ ] Pong mini-game (2-player real-time)
-- [ ] Game lobby and matchmaking
-- [ ] Snake mini-game
-- [ ] Cloud deployment
+## 🔧 Configuration Docker
 
-### Nice to Have
-- [ ] Spectator mode
-- [ ] Trivia mini-game
-- [ ] Kubernetes deployment (+20% bonus)
-- [ ] Voice chat (WebRTC)
+`docker-compose.yml` expose :
 
-## Quick Start
+- MySQL : `3306`
+- Backend : `3000`
+- Frontend : `5173`
 
-### Prerequisites
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
-- Git
+Variables d’environnement (dans `docker-compose.yml`) :
 
-### Run with Docker
+- `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`
+- `MYSQL_HOST` pour backend (`db` service)
+
+## 🧹 Préparer le projet (première fois)
 
 ```bash
-# Clone the repository
-git clone https://github.com/ArmSal/3PRJ2.git
-cd 3PRJ2
-
-# Start all services
-docker-compose up --build
-
-# Access the application
-open http://localhost
+cd discord-gaming-plus
+cd backend && npm install && cd ../frontend && npm install
+cd ..
+docker compose up --build
 ```
 
-### Services
+## 🔐 Sécurité à renforcer (à venir)
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| Frontend | http://localhost | Vue.js web interface |
-| Backend API | http://localhost/api | Node.js REST API |
-| MySQL | localhost:3306 | Database (root/password) |
+- validation côté backend de `author`, `content`, `player`
+- gestion d’authentification/token
+- prévention injection SQL (ORM + prepared statements déjà en partie via `?`)
 
-## Development
+## � Équipe
 
-### Backend Development
+| Rôle | Nom | GitHub |
+|------|-----|--------|
+| **C - DevOps** | Armend SALIHU | [@ArmSal](https://github.com/ArmSal) |
+| **B - Backend** | Babikir IBRAHIM AL KHALIL | - |
+| **A - Frontend** | Fedi Khaldi | - |
+| **D - Data/Jeu** | Abid RAKHIS AHMAT | - |
 
-```bash
-cd backend
-npm install
-npm run dev
-```
+## �🛠 Plan d'action par rôle
 
-### Frontend Development
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## API Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | /api/register | Create new account | No |
-| POST | /api/login | Authenticate user | No |
-| GET | /api/guilds | List all guilds | Yes |
-| POST | /api/guilds | Create new guild | Yes |
-| GET | /api/channels/:id/messages | Get channel messages | Yes |
-
-## Socket.io Events
-
-| Event | Direction | Description |
-|-------|-----------|-------------|
-| `join-channel` | Client → Server | Subscribe to a channel |
-| `send-message` | Client → Server | Send chat message |
-| `new-message` | Server → Client | Receive new message |
-| `game-invite` | Client → Server | Invite player to game |
-| `game-join` | Client → Server | Join game session |
-| `game-state` | Both | Sync game data (ball, scores) |
-| `game-move` | Client → Server | Player input (paddle) |
-
-## Project Structure
-
-```
-3PRJ2/
-├── .github/workflows/     # CI/CD pipelines
-│   ├── deploy.yml         # SSH deployment
-│   └── docker-push.yml    # Docker Hub push
-├── backend/               # Node.js backend
-│   ├── Dockerfile
-│   ├── package.json
-│   └── server.js
-├── frontend/              # Vue.js frontend
-│   ├── Dockerfile
-│   ├── nginx.conf
-│   ├── package.json
-│   └── src/
-│       ├── main.js
-│       ├── router.js
-│       ├── App.vue
-│       └── views/
-│           ├── Login.vue
-│           ├── Chat.vue
-│           └── Pong.vue
-├── docker-compose.yml     # Local development
-├── init.sql              # Database schema
-├── ARCHITECTURE.md       # Detailed architecture
-├── TEAM.md              # Team assignments
-└── README.md            # This file
-```
-
-## Database Schema
-
-### Tables
-
-**users**
-- id, username, email, password_hash, avatar_url, created_at
-
-**guilds**
-- id, name, description, created_by, created_at
-
-**guild_members**
-- id, user_id, guild_id, role (admin/moderator/member), joined_at
-
-**channels**
-- id, guild_id, name, type (text/voice)
-
-**messages**
-- id, channel_id, user_id, content, created_at
-
-**games**
-- id, channel_id, game_type, status, player1_id, player2_id, winner_id, created_at
-
-## Deployment
-
-### GitHub Actions
-
-The repository includes two workflows:
-
-1. **deploy.yml** - Deploys to a VM via SSH (requires `VM_HOST`, `VM_USER`, `VM_SSH_KEY` secrets)
-2. **docker-push.yml** - Pushes images to Docker Hub (requires `DOCKER_USERNAME`, `DOCKER_PASSWORD`)
-
-### Required Secrets
-
-Go to Settings → Secrets and variables → Actions in your GitHub repo:
-
-| Secret | Value |
-|--------|-------|
-| `VM_HOST` | Your server IP/domain |
-| `VM_USER` | SSH username |
-| `VM_SSH_KEY` | Private SSH key |
-
-## Evaluation Criteria
-
-This project is part of the **3PRJ2 Hackathon** with the following requirements:
-
-- **40%** Technical (Docker, code quality, CI/CD, functionality)
-- **30%** Innovation & UX (features, interface, experience)
-- **20%** Collaboration (teamwork, Git management)
-- **10%** Presentation (demo, technical choices)
-
-**Bonus:** +20% for Kubernetes deployment
-
-## License
-
-Academic project for École IT - Bachelor 3
+- **A (Front) - Fedi Khaldi**
+  - renommer en multi-canaux, vrai composants Vue, Tailwind complet, design Discord (navbar, salon/chat/avatar)
+  - pagination, fail-safe, accessibilité
+- **B (Back) - Babikir IBRAHIM AL KHALIL**
+  - JWT / auth, endpoints CRUD utiles, namespace Socket.io, rooms, messages privés
+  - tests unitaires + e2e
+- **C (DevOps) - Armend SALIHU**
+  - ajouter `.github/workflows` – pipeline lint/test/build/deploy
+  - automatiser `docker compose` + déploiement k8s (service + ingress)
+- **D (Data/Jeu) - Abid RAKHIS AHMAT**
+  - schéma relationnel (users, channels, scores, quiz, questions)
+  - logique quiz mode
