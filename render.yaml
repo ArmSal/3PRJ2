@@ -8,7 +8,8 @@ services:
     name: gaming-backend
     plan: free
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
+    rootDir: backend
+    dockerfilePath: Dockerfile
     envVars:
       - key: DB_HOST
         fromDatabase:
