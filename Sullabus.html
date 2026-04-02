@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<!-- saved from url=(0090)https://learning.ecole-it.com/pluginfile.php/5763/mod_resource/content/1/3PRJ2.html?embed= -->
+<html lang="fr"><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/content/location/location.js" id="eppiocemhmnlbhjplcgkofciiegomcon"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>École IT - Syllabus 3PRJ2</title>
+    <link href="./École IT - Syllabus 3PRJ2_files/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Optimisations PDF avec Bootstrap */
+        @page {
+            size: A4;
+            margin: 20mm 15mm;
+        }
+        
+        body {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        /* Container ajusté pour PDF */
+        .container-xl {
+            max-width: 210mm !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+        }
+        
+        .custom-header {
+            background: linear-gradient(135deg, #2c3e7d 0%, #3a4f8f 100%) !important;
+            color: white !important;
+            padding: 1.5rem !important;
+            position: relative !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .course-code {
+            color: #e91e63 !important;
+            font-weight: 700 !important;
+            font-size: 1.2rem !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .custom-header h1 {
+            font-size: 1.4rem !important;
+            line-height: 1.2 !important;
+        }
+        
+        .section-number {
+            background: #e91e63 !important;
+            color: white !important;
+            width: 26px;
+            height: 26px;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .section-title {
+            color: #2c3e7d !important;
+            font-size: 1rem !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .competence-box {
+            border-left: 4px solid #e91e63 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .content-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .content-list li {
+            padding: 0.25rem 0;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+        
+        .content-list li::before {
+            content: "▸";
+            color: #e91e63;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .info-table {
+            border: none !important;
+        }
+        
+        .info-table td {
+            border: 1px solid #dee2e6 !important;
+            padding: 0.6rem !important;
+        }
+        
+        .info-table .w-25 {
+            background-color: #f8f9fa !important;
+            font-weight: 600;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+        
+        .project-choice-box {
+            border: 2px solid #e91e63;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .project-title {
+            background: #e91e63;
+            color: white;
+            padding: 0.8rem 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .bonus-box {
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            background: #f8fff9;
+            margin: 1rem 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .bonus-title {
+            background: #28a745;
+            color: white;
+            padding: 0.6rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .logo-ecole-it {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 120px;
+            height: auto;
+        }
+        
+        .evaluation-criteria {
+            background: #f8f9fa;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    </style>
+<script bis_use="true" type="text/javascript" charset="utf-8" data-bis-config="[&quot;facebook.com/&quot;,&quot;twitter.com/&quot;,&quot;youtube-nocookie.com/embed/&quot;,&quot;//vk.com/&quot;,&quot;//www.vk.com/&quot;,&quot;linkedin.com/&quot;,&quot;//www.linkedin.com/&quot;,&quot;//instagram.com/&quot;,&quot;//www.instagram.com/&quot;,&quot;//www.google.com/recaptcha/api2/&quot;,&quot;//hangouts.google.com/webchat/&quot;,&quot;//www.google.com/calendar/&quot;,&quot;//www.google.com/maps/embed&quot;,&quot;spotify.com/&quot;,&quot;soundcloud.com/&quot;,&quot;//player.vimeo.com/&quot;,&quot;//disqus.com/&quot;,&quot;//tgwidget.com/&quot;,&quot;//js.driftt.com/&quot;,&quot;friends2follow.com&quot;,&quot;/widget&quot;,&quot;login&quot;,&quot;//video.bigmir.net/&quot;,&quot;blogger.com&quot;,&quot;//smartlock.google.com/&quot;,&quot;//keep.google.com/&quot;,&quot;/web.tolstoycomments.com/&quot;,&quot;moz-extension://&quot;,&quot;chrome-extension://&quot;,&quot;/auth/&quot;,&quot;//analytics.google.com/&quot;,&quot;adclarity.com&quot;,&quot;paddle.com/checkout&quot;,&quot;hcaptcha.com&quot;,&quot;recaptcha.net&quot;,&quot;2captcha.com&quot;,&quot;accounts.google.com&quot;,&quot;www.google.com/shopping/customerreviews&quot;,&quot;buy.tinypass.com&quot;,&quot;gstatic.com&quot;,&quot;secureir.ebaystatic.com&quot;,&quot;docs.google.com&quot;,&quot;contacts.google.com&quot;,&quot;github.com&quot;,&quot;mail.google.com&quot;,&quot;chat.google.com&quot;,&quot;audio.xpleer.com&quot;,&quot;keepa.com&quot;,&quot;static.xx.fbcdn.net&quot;,&quot;sas.selleramp.com&quot;,&quot;1plus1.video&quot;,&quot;console.googletagservices.com&quot;,&quot;//lnkd.demdex.net/&quot;,&quot;//radar.cedexis.com/&quot;,&quot;//li.protechts.net/&quot;,&quot;challenges.cloudflare.com/&quot;,&quot;ogs.google.com&quot;,&quot;//www.ukrnafta.com/data/map/&quot;,&quot;//maps.google.com/maps&quot;,&quot;//www.openstreetmap.org/export/embed.html&quot;,&quot;//www.google.com/maps/d/u/3/embed&quot;]" data-dynamic-id="746be436-5d1b-4a19-8fad-8a9a7943801a" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js"></script><script bis_use="true" type="text/javascript" charset="utf-8" nonce="" data-dynamic-id="746be436-5d1b-4a19-8fad-8a9a7943801a" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/101.js"></script></head>
+<body __processed_21df956c-b84c-462a-ab91-03b584152d92__="true" bis_register="W3sibWFzdGVyIjp0cnVlLCJleHRlbnNpb25JZCI6ImVwcGlvY2VtaG1ubGJoanBsY2drb2ZjaWllZ29tY29uIiwiYWRibG9ja2VyU3RhdHVzIjp7IkRJU1BMQVkiOiJlbmFibGVkIiwiRkFDRUJPT0siOiJlbmFibGVkIiwiVFdJVFRFUiI6ImVuYWJsZWQiLCJSRURESVQiOiJlbmFibGVkIiwiUElOVEVSRVNUIjoiZW5hYmxlZCIsIklOU1RBR1JBTSI6ImVuYWJsZWQiLCJUSUtUT0siOiJkaXNhYmxlZCIsIkxJTktFRElOIjoiZW5hYmxlZCIsIkNPTkZJRyI6ImRpc2FibGVkIn0sInZlcnNpb24iOiIyLjAuNDUiLCJzY29yZSI6MjAwNDUwfV0=">
+    <div class="container-xl mx-auto" bis_skin_checked="1">
+        <!-- Header -->
+        <header class="custom-header">
+            <div class="row align-items-center" bis_skin_checked="1">
+                <div class="col-8" bis_skin_checked="1">
+                    <div class="course-code mb-2" bis_skin_checked="1">3PRJ2</div>
+                    <h1 class="fw-bold mb-2">Hackathon Applications Sociales Cloud-Native</h1>
+                    <div class="fs-6 opacity-75" bis_skin_checked="1">
+                        École IT - Année académique 2025-2026<br>
+                        B3 - Unité 2 - Projet intensif de 5 jours (35h)
+                    </div>
+                </div>
+            </div>
+            <div class="logo-ecole-it" bis_skin_checked="1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 166.7 44">
+                    <style>.st0{fill:#D1D5DB}.st1{fill:#e91e63}</style>
+                    <g>
+                        <path class="st0" d="M90.7,37.6c-2-0.8-3.3-2.7-3.3-4.8v-2.1l0,0V0h-6.1v30.6l0,0v2.1c0,6.2,5,11.2,11.2,11.3h3.3C93.5,42.5,91.7,40.2,90.7,37.6"></path>
+                        <path class="st0" d="M98.5,32.5c0.3,4.1,3.9,6.4,7.4,6.3c2.5,0.1,4.9-1.2,6.1-3.4h6.3c-1.1,2.6-2.8,4.8-5.1,6.4c-2.1,1.5-4.7,2.3-7.3,2.2c-7.5,0-13.5-6.1-13.5-13.6c0-7.4,6-13.4,13.4-13.5c3.6-0.1,7,1.3,9.5,3.9c3,3.1,4.4,7.4,3.8,11.6L98.5,32.5z M113,27.8c-0.6-3.5-3.7-5.9-7.2-5.8c-4.5,0-7,3.2-7.2,5.8H113z"></path>
+                        <path class="st0" d="M6.4,32.5c0.3,4.1,3.9,6.4,7.4,6.3c2.5,0.1,4.9-1.2,6.1-3.4h6.3c-1.1,2.6-2.8,4.8-5.1,6.4c-2.1,1.5-4.7,2.3-7.3,2.2C6.3,43.9,0.3,37.8,0.4,30.3C0.5,23,6.4,17,13.7,16.9c3.6-0.1,7,1.3,9.5,3.9c3,3.1,4.4,7.4,3.8,11.6L6.4,32.5z M21,27.8c-0.6-3.5-3.7-5.9-7.2-5.8c-4.5,0-7,3.2-7.2,5.8H21z"></path>
+                        <path class="st0" d="M64.1,17c-7.3-0.2-13.4,5.5-13.6,12.8c0,0.2,0,0.4,0,0.6v0c0,1.2,0.2,2.3,0.4,3.5h-0.1c-1.2,2.7-3.9,4.5-6.9,4.4c-4.3,0-7.5-3.2-7.5-7.8c0-2.1,0.7-4.1,2.1-5.7c1.4-1.5,3.4-2.3,5.4-2.2c1.4,0,2.7,0.4,3.9,1.1c0.8-1.8,1.9-3.3,3.3-4.6c-2.2-1.4-4.8-2.1-7.5-2.1c-7.5,0.2-13.4,6.4-13.2,13.8c0.2,7.5,6.4,13.4,13.8,13.2c3.7-0.1,7.2-1.7,9.6-4.4c5,5.6,13.6,6.2,19.2,1.2s6.2-13.6,1.2-19.2C71.7,18.6,68,17,64.1,17M64.1,38.2c-4.2,0-7.6-3.4-7.6-7.5c0-0.1,0-0.1,0-0.2v0c0.1-4.2,3.6-7.4,7.8-7.3c4.2,0.1,7.4,3.6,7.3,7.8C71.5,35,68.1,38.2,64.1,38.2"></path>
+                        <path class="st0" d="M166.7,10h-26v6h10v27.8h6.1V16h10L166.7,10z"></path>
+                        <path class="st0" d="M136.9,30.5v-1.4l0,0v-8h-6.1v8l0,0v1.4c0,0.1,0,0.1,0,0.2v0.4h0c0.3,7.2,6.3,12.9,13.5,12.9v-6.1C140.2,37.9,136.9,34.6,136.9,30.5"></path>
+                        <rect x="130.8" y="10" class="st1" width="6.1" height="7.5"></rect>
+                        <path class="st0" d="M5.3,13.5H0V7.4h5.3c4,0,7.3-3.3,7.3-7.3h6.1C18.7,7.5,12.7,13.5,5.3,13.5"></path>
+                    </g>
+                </svg>
+            </div>
+        </header>
+        
+        <!-- Content -->
+        <div class="p-4" bis_skin_checked="1">
+            <!-- Section 1 -->
+            <section class="mb-4 no-break">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">1</span>
+                    INFORMATIONS GÉNÉRALES
+                </h2>
+                <table class="table table-bordered info-table">
+                    <tbody><tr>
+                        <td class="w-25">Code module</td>
+                        <td>B3PRJ2 - Hackathon Applications Sociales Cloud-Native</td>
+                    </tr>
+                    <tr>
+                        <td>Niveau</td>
+                        <td>Bachelor 3 - Unité 2</td>
+                    </tr>
+                    <tr>
+                        <td>Durée</td>
+                        <td>5 jours / 35 heures</td>
+                    </tr>
+                    <tr>
+                        <td>Format</td>
+                        <td>Équipes de 3 à 4 étudiants maximum</td>
+                    </tr>
+                    <tr>
+                        <td>Prérequis</td>
+                        <td>Docker avancé, Kubernetes, CI/CD GitLab, développement full-stack</td>
+                    </tr>
+                </tbody></table>
+            </section>
+            
+            <!-- Section 2 -->
+            <section class="mb-4">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">2</span>
+                    PRÉREQUIS DÉTAILLÉS
+                </h2>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Acquis requis de B3U1</h4>
+                        <ul class="content-list">
+                            <li><strong>Automatisation système :</strong> Bash, scripts d'infrastructure</li>
+                            <li><strong>Infrastructure as Code :</strong> Ansible, Terraform</li>
+                            <li><strong>DevOps culture :</strong> Principes d'automatisation et collaboration</li>
+                            <li><strong>Git avancé :</strong> Stratégies de branches, workflows collaboratifs</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Acquis requis de B3U2</h4>
+                        <ul class="content-list">
+                            <li><strong>Docker avancé :</strong> Optimisation d'images, réseaux, sécurité</li>
+                            <li><strong>Kubernetes :</strong> Architecture, composants, configuration</li>
+                            <li><strong>CI/CD GitLab :</strong> Pipelines avancés, déploiement automatisé</li>
+                            <li><strong>Gestion de projet Agile :</strong> Méthodes collaboratives</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Compétences développement requises</h4>
+                        <ul class="content-list">
+                            <li><strong>Frontend :</strong> React, Vue.js ou technologies équivalentes</li>
+                            <li><strong>Backend :</strong> Python (Django/Flask), Node.js ou équivalent</li>
+                            <li><strong>Bases de données :</strong> Relationnelles et NoSQL</li>
+                            <li><strong>APIs :</strong> REST, intégration services tiers</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 3 -->
+            <section class="mb-4">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">3</span>
+                    OBJECTIFS PÉDAGOGIQUES
+                </h2>
+                
+                <div class="card competence-box" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">À la fin de ce hackathon, l'étudiant sera capable de :</h4>
+                        <ul class="content-list">
+                            <li>Concevoir et développer une application sociale moderne en architecture cloud-native</li>
+                            <li>Intégrer harmonieusement containerisation Docker et orchestration Kubernetes</li>
+                            <li>Implémenter des pipelines CI/CD complets avec GitLab</li>
+                            <li>Développer des fonctionnalités temps réel et des interfaces utilisateur engageantes</li>
+                            <li>Gérer un projet complexe en équipe avec contraintes temporelles strictes</li>
+                            <li>Appliquer les bonnes pratiques DevOps en situation de production</li>
+                            <li>Présenter et défendre ses choix techniques devant un jury</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 4 -->
+            <section class="mb-4">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">4</span>
+                    SUJETS DE PROJET
+                </h2>
+                
+                <p class="mb-4">Chaque équipe doit choisir <strong>un seul sujet</strong> parmi les 5 propositions suivantes. Tous les projets doivent être développés en architecture cloud-native avec containerisation Docker obligatoire.</p>
+            
+                
+                <div class="project-choice-box" bis_skin_checked="1">
+                    <div class="project-title" bis_skin_checked="1">Option D - Discord-Gaming Plus : Plateforme Social Gaming</div>
+                    <div class="p-3" bis_skin_checked="1">
+                        <p><strong>Concept :</strong> Plateforme de communication avec mini-jeux en browser intégrés, tournois inter-campus et fonctionnalités gaming sociales.</p>
+                        
+                        <p><strong>Fonctionnalités attendues :</strong></p>
+                        <ul class="content-list mb-2">
+                            <li><strong>Communication :</strong> Chat vocal/texte temps réel</li>
+                            <li><strong>Mini-jeux :</strong> Jeux browser simples intégrés (Pong, Snake, Trivia)</li>
+                            <li><strong>Tournois :</strong> Compétitions officielles inter-campus</li>
+                            <li><strong>Communautés :</strong> Guildes par école/formation</li>
+                            <li><strong>Partage :</strong> Spectateur mode pour regarder ses amis jouer</li>
+                        </ul>
+                        
+                        <p><strong>Stack technique suggérée :</strong> Vue.js, Node.js, Socket.io, WebRTC</p>
+                    </div>
+                </div>
+                
+
+                </div>
+            </section>
+            
+            <!-- Section 5 -->
+            <section class="mb-4">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">5</span>
+                    CONTRAINTES TECHNIQUES OBLIGATOIRES
+                </h2>
+                
+                <div class="warning-box" bis_skin_checked="1">
+                    <h5 class="fw-bold mb-3">⚠️ Contraintes non-négociables</h5>
+                    <ul class="content-list">
+                        <li><strong>Architecture containerisée :</strong> Tous les services doivent être containerisés avec Docker</li>
+                        <li><strong>Multi-services :</strong> Minimum 3 conteneurs (frontend, backend, base de données)</li>
+                        <li><strong>Pipeline CI/CD :</strong> GitLab CI configuré avec déploiement automatisé</li>
+                        <li><strong>Interface utilisateur :</strong> Interface moderne et responsive</li>
+                        <li><strong>Fonctionnement complet :</strong> Application déployée et accessible</li>
+                    </ul>
+                </div>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Exigences de qualité</h4>
+                        <ul class="content-list">
+                            <li><strong>Code source :</strong> Repository Git propre avec commits fréquents</li>
+                            <li><strong>Documentation :</strong> README détaillé avec instructions de déploiement</li>
+                            <li><strong>Sécurité :</strong> Authentification utilisateur implémentée</li>
+                            <li><strong>Performance :</strong> Temps de réponse acceptables</li>
+                            <li><strong>Données :</strong> Persistance et intégrité assurées</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bonus-box" bis_skin_checked="1">
+                    <div class="bonus-title" bis_skin_checked="1">🎯 BONUS KUBERNETES (+20% note finale)</div>
+                    <div class="p-3" bis_skin_checked="1">
+                        <p><strong>Orchestration Kubernetes :</strong> Les équipes qui déploient leur application sur Kubernetes avec configuration complète (services, ingress, volumes) bénéficieront d'un bonus de 20% sur leur note finale.</p>
+                        
+                        <p><strong>Critères bonus :</strong></p>
+                        <ul class="content-list mb-0">
+                            <li>Déploiement fonctionnel sur cluster Kubernetes</li>
+                            <li>Configuration des services et load balancing</li>
+                            <li>Gestion des volumes persistants pour les données</li>
+                            <li>Configuration ingress pour accès externe</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 6 -->
+            <section class="mb-4">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">6</span>
+                    DÉROULEMENT ET MÉTHODOLOGIE
+                </h2>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Planning indicatif</h4>
+                        <ul class="content-list">
+                            <li><strong>Jour 1 matin :</strong> Formation des équipes, choix du sujet, architecture</li>
+                            <li><strong>Jour 1 après-midi :</strong> Setup initial, containerisation de base</li>
+                            <li><strong>Jours 2-3 :</strong> Développement des fonctionnalités core</li>
+                            <li><strong>Jour 4 :</strong> Intégration, tests, amélioration UX</li>
+                            <li><strong>Jour 5 matin :</strong> Finalisation, préparation des démos</li>
+                            <li><strong>Jour 5 après-midi :</strong> Présentations devant jury</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Méthodes de travail attendues</h4>
+                        <ul class="content-list">
+                            <li><strong>Autonomie :</strong> Recherche de solutions, débrouillardise technique</li>
+                            <li><strong>Collaboration :</strong> Répartition des tâches, entraide dans l'équipe</li>
+                            <li><strong>Itération :</strong> Développement incrémental avec démonstrations régulières</li>
+                            <li><strong>Pragmatisme :</strong> Priorisation des fonctionnalités essentielles</li>
+                            <li><strong>Innovation :</strong> Créativité dans les solutions techniques</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 7 -->
+            <section class="mb-4">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">7</span>
+                    ÉVALUATION
+                </h2>
+                
+                <div class="evaluation-criteria" bis_skin_checked="1">
+                    <h5 class="fw-bold mb-3">Critères d'évaluation (note sur 20)</h5>
+                    
+                    <div class="row" bis_skin_checked="1">
+                        <div class="col-md-6" bis_skin_checked="1">
+                            <p><strong>Technique (40%)</strong></p>
+                            <ul class="content-list">
+                                <li>Architecture containerisée complète</li>
+                                <li>Qualité du code et bonnes pratiques</li>
+                                <li>Fonctionnement de l'application</li>
+                                <li>Pipeline CI/CD opérationnel</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6" bis_skin_checked="1">
+                            <p><strong>Innovation &amp; UX (30%)</strong></p>
+                            <ul class="content-list">
+                                <li>Originalité des fonctionnalités</li>
+                                <li>Interface utilisateur attrayante</li>
+                                <li>Expérience utilisateur fluide</li>
+                                <li>Créativité dans la résolution</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3" bis_skin_checked="1">
+                        <div class="col-md-6" bis_skin_checked="1">
+                            <p><strong>Collaboration (20%)</strong></p>
+                            <ul class="content-list">
+                                <li>Répartition équilibrée des tâches</li>
+                                <li>Entraide et communication</li>
+                                <li>Gestion du repository Git</li>
+                                <li>Documentation collaborative</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6" bis_skin_checked="1">
+                            <p><strong>Présentation (10%)</strong></p>
+                            <ul class="content-list">
+                                <li>Démonstration en direct</li>
+                                <li>Explication des choix techniques</li>
+                                <li>Défense du projet</li>
+                                <li>Gestion du temps de présentation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 p-2 bg-success text-white rounded" bis_skin_checked="1">
+                        <strong>Bonus Kubernetes :</strong> +20% de la note finale si déploiement K8s complet
+                    </div>
+                </div>
+                
+                <div class="card competence-box mt-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Modalités de présentation</h4>
+                        <ul class="content-list">
+                            <li><strong>Durée :</strong> 15 minutes par équipe (10 min demo + 5 min questions)</li>
+                            <li><strong>Format :</strong> Démonstration en direct de l'application</li>
+                            <li><strong>Livrable :</strong> URL de l'application déployée + repository Git</li>
+                            <li><strong>Documentation :</strong> README complet avec guide d'installation</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 8 -->
+            <section class="mb-4">
+                <h2 class="section-title fs-4 fw-semibold mb-3 d-flex align-items-center">
+                    <span class="section-number">8</span>
+                    RESSOURCES ET OUTILS
+                </h2>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Infrastructure mise à disposition</h4>
+                        <ul class="content-list">
+                            <li><strong>GitLab :</strong> Repositories privés avec CI/CD runners</li>
+                            <li><strong>Environnement cloud :</strong> Machines virtuelles pour déploiement</li>
+                            <li><strong>Cluster Kubernetes :</strong> Accès pour équipes bonus</li>
+                            <li><strong>Bases de données :</strong> Instances PostgreSQL, MongoDB</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card competence-box mb-3" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Technologies recommandées</h4>
+                        <ul class="content-list">
+                            <li><strong>Frontend :</strong> React, Vue.js, React Native pour mobile</li>
+                            <li><strong>Backend :</strong> Node.js, Python (Django/Flask), ou équivalent</li>
+                            <li><strong>Bases de données :</strong> PostgreSQL, MongoDB, Redis</li>
+                            <li><strong>3D/Gaming :</strong> Three.js, Canvas API, Socket.io</li>
+                            <li><strong>APIs tiers :</strong> Google Maps, GitHub, LinkedIn, etc.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card competence-box" bis_skin_checked="1">
+                    <div class="card-body bg-light" bis_skin_checked="1">
+                        <h4 class="card-title section-title fs-5 mb-2">Support technique</h4>
+                        <ul class="content-list">
+                            <li><strong>Encadrement :</strong> Formateurs disponibles pour déblocage</li>
+                            <li><strong>Documentation :</strong> Accès aux ressources de cours</li>
+                            <li><strong>Pair programming :</strong> Encouragé entre équipes</li>
+                            <li><strong>Recherche autonome :</strong> Internet, documentation officielle</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="custom-header py-2 mt-4">
+            <div class="container-fluid px-4" bis_skin_checked="1">
+                <div class="row align-items-center" bis_skin_checked="1">
+                    <div class="col-md-6" bis_skin_checked="1">
+                        <span class="small"><strong>Dernière mise à jour :</strong> 13/08/2025</span>
+                    </div>
+                    <div class="col-md-6 text-md-end" bis_skin_checked="1">
+                        <span class="small">École IT - Document pédagogique Bachelor 3</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <script src="./École IT - Syllabus 3PRJ2_files/bootstrap.bundle.min.js.téléchargement"></script>
+
+</body></html>
