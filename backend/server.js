@@ -1,7 +1,6 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const mysql = require('mysql2/promise');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -13,14 +12,47 @@ const io = new Server(server, { cors: { origin: '*' } });
 app.use(cors());
 app.use(express.json());
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'password',
-  database: process.env.DB_NAME || 'gaming_platform',
-  waitForConnections: true,
-  connectionLimit: 10,
-});
+// Database setup - supports both MySQL (local) and PostgreSQL (Render)
+let pool;
+let isPostgres = false;
+
+if (process.env.DATABASE_URL) {
+  // PostgreSQL (Render)
+  const { Pool } = require('pg');
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+  isPostgres = true;
+} else {
+  // MySQL (Local)
+  const mysql = require('mysql2/promise');
+  pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'password',
+    database: process.env.DB_NAME || 'gaming_platform',
+    waitForConnections: true,
+    connectionLimit: 10,
+  });
+}
+
+// Helper for parameterized queries
+const query = async (sql, params) => {
+  if (isPostgres) {
+    // Convert MySQL ? to PostgreSQL $1, $2, etc.
+    let pgSql = sql;
+    let paramIndex = 1;
+    while (pgSql.includes('?')) {
+      pgSql = pgSql.replace('?', `$${paramIndex}`);
+      paramIndex++;
+    }
+    const result = await pool.query(pgSql, params);
+    return [result.rows];
+  } else {
+    return await pool.execute(sql, params);
+  }
+};
 
 // Auth middleware
 const auth = (req, res, next) => {
@@ -37,7 +69,7 @@ app.post('/api/register', async (req, res) => {
   const { username, email, password } = req.body;
   const hash = await bcrypt.hash(password, 10);
   try {
-    await pool.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)', [username, email, hash]);
+    await query('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)', [username, email, hash]);
     res.json({ success: true });
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -46,7 +78,7 @@ app.post('/api/register', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
-  const [rows] = await pool.execute('SELECT * FROM users WHERE username = ?', [username]);
+  const [rows] = await query('SELECT * FROM users WHERE username = ?', [username]);
   if (!rows[0] || !await bcrypt.compare(password, rows[0].password_hash)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
@@ -55,25 +87,26 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.get('/api/guilds', auth, async (req, res) => {
-  const [rows] = await pool.execute(`
+  const [rows] = await query(`
     SELECT g.*, u.username as creator_name 
     FROM guilds g 
     JOIN users u ON g.created_by = u.id
-  `);
+  `, []);
   res.json(rows);
 });
 
 app.post('/api/guilds', auth, async (req, res) => {
   const { name, description } = req.body;
-  const [result] = await pool.execute('INSERT INTO guilds (name, description, created_by) VALUES (?, ?, ?)', 
+  const [result] = await query('INSERT INTO guilds (name, description, created_by) VALUES (?, ?, ?)', 
     [name, description, req.user.id]);
-  await pool.execute('INSERT INTO channels (guild_id, name, type) VALUES (?, ?, ?)', 
-    [result.insertId, 'general', 'text']);
-  res.json({ id: result.insertId });
+  const insertId = isPostgres ? result[0]?.id : result.insertId;
+  await query('INSERT INTO channels (guild_id, name, type) VALUES (?, ?, ?)', 
+    [insertId, 'general', 'text']);
+  res.json({ id: insertId });
 });
 
 app.get('/api/channels/:guildId/messages', auth, async (req, res) => {
-  const [rows] = await pool.execute(`
+  const [rows] = await query(`
     SELECT m.*, u.username 
     FROM messages m 
     JOIN users u ON m.user_id = u.id 
@@ -96,7 +129,7 @@ io.on('connection', (socket) => {
   
   socket.on('send-message', async (data) => {
     const { channelId, content, userId } = data;
-    await pool.execute('INSERT INTO messages (channel_id, user_id, content) VALUES (?, ?, ?)', 
+    await query('INSERT INTO messages (channel_id, user_id, content) VALUES (?, ?, ?)', 
       [channelId, userId, content]);
     io.to(`channel-${channelId}`).emit('new-message', { ...data, created_at: new Date() });
   });
