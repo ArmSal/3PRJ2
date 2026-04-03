@@ -1,11 +1,26 @@
 # Team Member Assignments
 
+## AI Assistant
+**Windsurf Agent (Kimi 2.5)** - AI pair programming assistant used for accelerated development
+
 ## Team Members
 
 - **DevOps Lead:** Armend SALIHU (You)
 - **Backend Developer:** Babikir IBRAHIM AL KHALIL
 - **Frontend Developer:** Fedi Khaldi
 - **Full-Stack/Games Developer:** Abid RAKHIS AHMAT
+
+## Tech Stack & Tools
+
+| Category | Technology |
+|----------|------------|
+| **Frontend** | Vue.js 3 + Vite |
+| **Backend** | Node.js + Express + Socket.io |
+| **Database** | PostgreSQL (Render) / MySQL (local) |
+| **AI Assistant** | Windsurf Agent (Kimi 2.5) |
+| **Deployment** | Render.com (Free Tier) |
+| **CI/CD** | GitHub Actions |
+| **Containerization** | Docker + Docker Compose |
 
 ## Contact Info
 

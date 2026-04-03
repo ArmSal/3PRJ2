@@ -1,5 +1,7 @@
 # Discord Gaming Plus - Hackathon 48h
 
+**AI Assistant:** Windsurf Agent (Kimi 2.5) - Accelerated development
+
 ## 🎯 Objectif
 
 Projet MVP du hackathon Discord Gaming Plus avec stack : Vue 3 + Tailwind + Node.js + Express + Socket.io + MySQL et Docker.
