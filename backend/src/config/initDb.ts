@@ -122,26 +122,31 @@ const initDb = async (): Promise<void> => {
       );
     }
 
-    // Ensure test users exist
-    const testUsers = await query('SELECT count(*) FROM users');
-    if (parseInt(testUsers.rows[0].count) < 2) {
-      console.log('🌱 SEEDING: Creating test users...');
-      
-      // armsal:armsal
+    // Ensure test users exist (always check individually)
+    console.log('🌱 SEEDING: Checking test users...');
+    
+    // armsal:armsal
+    const armsalCheck = await query('SELECT username FROM users WHERE username = $1', ['armsal']);
+    if (armsalCheck.rows.length === 0) {
+      console.log('🌱 Creating armsal user...');
       const armsalHash = await bcrypt.hash('armsal', 10);
       await query(
-        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) ON CONFLICT (username) DO NOTHING',
+        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
         ['armsal', 'armsal@test.com', armsalHash]
       );
-      
-      // fedi:fedi
+      console.log('✅ armsal created');
+    }
+    
+    // fedi:fedi
+    const fediCheck = await query('SELECT username FROM users WHERE username = $1', ['fedi']);
+    if (fediCheck.rows.length === 0) {
+      console.log('🌱 Creating fedi user...');
       const fediHash = await bcrypt.hash('fedi', 10);
       await query(
-        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) ON CONFLICT (username) DO NOTHING',
+        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
         ['fedi', 'fedi@test.com', fediHash]
       );
-      
-      console.log('✅ Test users created: armsal:armsal, fedi:fedi');
+      console.log('✅ fedi created');
     }
 
     console.log('✅ DATABASE OPERATIONAL: All schemas synchronized.');
