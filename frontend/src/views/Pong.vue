@@ -259,22 +259,8 @@ export default {
         }
       }
       
-      // Interpolate towards target positions (smooth network sync)
+      // Interpolate towards server target positions (smooth network sync)
       this.interpolateGameObjects()
-      
-      // Ball physics (only calculated on server in real implementation)
-      // This is client-side prediction for smooth gameplay
-      this.ball.x += this.ball.dx
-      this.ball.y += this.ball.dy
-      
-      // Ball collision with top/bottom
-      if (this.ball.y - this.ball.radius < 0 || this.ball.y + this.ball.radius > this.canvas.height) {
-        this.ball.dy = -this.ball.dy
-      }
-      
-      // Ball collision with paddles
-      this.checkPaddleCollision(this.paddle1)
-      this.checkPaddleCollision(this.paddle2)
     },
     
     checkPaddleCollision(paddle) {
