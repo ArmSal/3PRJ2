@@ -10,7 +10,7 @@ export class AuthController {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
       const result = await query(
-        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email',
+        'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email',
         [username, email, hashedPassword]
       );
 
@@ -40,7 +40,7 @@ export class AuthController {
         return res.status(401).json({ error: 'AUTHENTICATION_FAILED: User not found.' });
       }
 
-      const passwordMatch = await bcrypt.compare(password, user.password);
+      const passwordMatch = await bcrypt.compare(password, user.password_hash);
       console.log('🔐 PASSWORD MATCH:', passwordMatch);
 
       if (!passwordMatch) {
@@ -53,7 +53,7 @@ export class AuthController {
         { expiresIn: '24h' }
       );
 
-      delete user.password;
+      delete user.password_hash;
       console.log('✅ LOGIN SUCCESS:', username);
       res.json({ user, token });
     } catch (err: any) {

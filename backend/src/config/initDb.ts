@@ -139,7 +139,7 @@ const initDb = async (): Promise<void> => {
       console.log('🌱 Creating armsal user...');
       const armsalHash = await bcrypt.hash('armsal', 10);
       await query(
-        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
+        'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)',
         ['armsal', 'armsal@test.com', armsalHash]
       );
       console.log('✅ armsal created');
@@ -151,7 +151,7 @@ const initDb = async (): Promise<void> => {
       console.log('🌱 Creating fedi user...');
       const fediHash = await bcrypt.hash('fedi', 10);
       await query(
-        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
+        'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)',
         ['fedi', 'fedi@test.com', fediHash]
       );
       console.log('✅ fedi created');
