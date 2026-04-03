@@ -13,7 +13,7 @@ interface CustomSocket extends Socket {
   };
 }
 
-const onlineUsers = new Map<number, { socketId: string, username: string }>();
+const onlineUsers = new Map<number, { id: number, socketId: string, username: string }>();
 
 export default (io: Server) => {
   io.on('connection', (socket: CustomSocket) => {
@@ -26,14 +26,14 @@ export default (io: Server) => {
         socket.data.userId = decoded.id;
         socket.data.username = decoded.username;
         
-        onlineUsers.set(decoded.id, { socketId: socket.id, username: decoded.username });
+        onlineUsers.set(decoded.id, { id: decoded.id, socketId: socket.id, username: decoded.username });
         
         console.log(`📡 NEURAL LINK AUTHENTICATED: [${decoded.id}] ${decoded.username}`);
         socket.emit('authenticated', { success: true, userId: decoded.id });
-        io.emit('user-online', { userId: decoded.id, username: decoded.username });
+        io.emit('user-online', { id: decoded.id, username: decoded.username });
         
         // Broadcast online users to the newly connected client
-        const users = Array.from(onlineUsers.values()).map(u => ({ username: u.username }));
+        const users = Array.from(onlineUsers.values()).map(u => ({ id: u.id, username: u.username }));
         socket.emit('users:online', users);
       } catch (err) {
         console.warn('⚠️ NEURAL LINK REJECTED: Authentication failed', err);
@@ -42,7 +42,7 @@ export default (io: Server) => {
     });
 
     socket.on('get-online-users', () => {
-      const users = Array.from(onlineUsers.values()).map(u => ({ username: u.username }));
+      const users = Array.from(onlineUsers.values()).map(u => ({ id: u.id, username: u.username }));
       socket.emit('users:online', users);
     });
 
