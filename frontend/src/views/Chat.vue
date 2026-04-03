@@ -19,6 +19,7 @@ const messagesContainer = ref<HTMLElement | null>(null)
 const newMessage = ref('')
 const showUserMenu = ref(false)
 const typingTimeout = ref<number | null>(null)
+const isSidebarOpen = ref(false)
 
 const isChildRoute = computed(() => route.path !== '/app' && route.path !== '/app/')
 const activeTab = computed(() => {
@@ -146,8 +147,8 @@ const toggleVoiceChannel = async () => {
 <template>
   <div class="h-screen w-full flex bg-[#0f111a] text-slate-200 overflow-hidden font-sans antialiased selection:bg-primary/30">
     
-    <!-- LEFT SIDEBAR: GUILDS -->
-    <aside class="w-[72px] flex flex-col items-center py-4 gap-3 bg-[#090b11] border-r border-white/5">
+    <!-- SIDEBAR 1: GUILDS -->
+    <aside class="w-16 flex-shrink-0 bg-[#090b11] border-r border-white/5 flex flex-col items-center py-4 gap-4 z-50">
       <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-2xl shadow-lg shadow-primary/20 cursor-pointer active:scale-90 transition-all">
         🎮
       </div>
@@ -186,7 +187,7 @@ const toggleVoiceChannel = async () => {
               <h2 class="text-sm font-black tracking-tight uppercase italic">{{ chatStore.selectedChannel?.name || 'general' }}</h2>
            </div>
            
-           <nav class="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/5">
+           <nav class="hidden md:flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/5">
               <button 
                 v-for="tab in ['chat', 'games', 'tournaments']" 
                 :key="tab"
@@ -206,7 +207,7 @@ const toggleVoiceChannel = async () => {
 
         <div class="flex items-center gap-4">
            <div class="relative hidden lg:block">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 text-xs text-xs">🔍</span>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 text-xs">🔍</span>
               <input type="text" placeholder="Search Intel..." class="bg-black/40 border border-white/5 rounded-full py-1.5 pl-9 pr-6 text-xs w-48 focus:w-64 focus:border-primary transition-all outline-none" />
            </div>
            
@@ -230,9 +231,21 @@ const toggleVoiceChannel = async () => {
         </div>
 
         <!-- DEFAULT CHAT VIEW -->
-        <div v-else class="flex h-full">
-           <!-- LEFT CONTEXT SIDEBAR -->
-           <aside class="w-60 flex flex-col bg-[#0b0d14] border-r border-white/5">
+        <div v-else class="flex h-full w-full relative">
+           <!-- MOBILE MENU OVERLAY -->
+           <div 
+             v-if="isSidebarOpen" 
+             @click="isSidebarOpen = false" 
+             class="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+           ></div>
+
+           <!-- SIDEBAR 2: CHANNELS -->
+           <aside 
+             :class="cn(
+               'w-60 flex-shrink-0 bg-[#0b0d14] border-r border-white/5 flex flex-col fixed inset-y-0 left-16 z-40 transition-transform duration-300 md:relative md:translate-x-0',
+               isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+             )"
+           >
               <div class="flex-1 px-3 py-4 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
                  <div class="section">
                     <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 flex items-center justify-between">
@@ -283,8 +296,17 @@ const toggleVoiceChannel = async () => {
               </div>
            </aside>
 
-           <!-- MAIN CHAT AREA -->
-           <div class="flex-1 flex flex-col bg-[#0f111a] relative">
+           <!-- MAIN CONTENT: CHAT -->
+           <div class="flex-1 flex flex-col bg-[#0f111a] relative min-w-0">
+              <!-- MOBILE HEADER -->
+              <header class="md:hidden flex items-center justify-between h-14 px-4 bg-[#090b11] border-b border-white/5 z-30">
+                 <button @click="isSidebarOpen = !isSidebarOpen" class="p-2 -ml-2 text-slate-400 hover:text-white transition-all">
+                    <span class="text-xl">☰</span>
+                 </button>
+                 <h2 class="text-xs font-black italic tracking-widest uppercase truncate px-4">{{ chatStore.selectedChannel?.name || 'General' }}</h2>
+                 <div class="w-8"></div>
+              </header>
+
               <div ref="messagesContainer" class="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-4 custom-scrollbar">
                  <div v-for="(msg, i) in chatStore.messages" :key="i" 
                     class="group flex gap-4 p-2 rounded-xl hover:bg-white/5 transition-all animate-in fade-in slide-in-from-bottom-1 duration-300"
@@ -346,8 +368,8 @@ const toggleVoiceChannel = async () => {
               </div>
            </div>
 
-           <!-- RIGHT MEMBER LIST -->
-           <aside class="w-60 hidden xl:flex flex-col bg-[#0b0d14] border-l border-white/5 p-4 overflow-y-auto custom-scrollbar">
+           <!-- ONLINE LIST (HIDDEN ON SMALL SCREENS) -->
+           <div class="hidden lg:block w-64 bg-[#090b11] border-l border-white/5 p-6 overflow-y-auto custom-scrollbar">
               <h4 class="text-[9px] font-black text-slate-600 uppercase tracking-widest px-2 mb-4">Tactical Units — {{ chatStore.onlineUsers.length }}</h4>
               <div class="space-y-1">
                  <div v-for="u in chatStore.onlineUsers" :key="u.id" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 group cursor-pointer transition-all">
@@ -361,8 +383,8 @@ const toggleVoiceChannel = async () => {
                     </div>
                  </div>
               </div>
-           </aside>
-        </div>
+            </div>
+         </div>
       </div>
     </main>
   </div>

@@ -300,8 +300,9 @@ const gameLoop = () => {
 
 <style scoped>
 canvas {
-  width: 800px;
-  height: 400px;
-  image-rendering: auto;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  image-rendering: pixelated;
 }
 </style>
