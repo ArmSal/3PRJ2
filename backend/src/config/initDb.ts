@@ -128,6 +128,20 @@ const initDb = async (): Promise<void> => {
         'INSERT INTO channels (guild_id, name, type) VALUES ($1, $2, $3)',
         [publicGuildId, 'general', 'text']
       );
+    } else {
+      // DATA INTEGRITY: Ensure every existing guild has at least one channel
+      console.log('🔍 DATA INTEGRITY: Checking tactical channels for existing guilds...');
+      const allGuilds = await query('SELECT id, name FROM guilds');
+      for (const guild of allGuilds.rows) {
+        const chanCheck = await query('SELECT count(*) FROM channels WHERE guild_id = $1', [guild.id]);
+        if (parseInt(chanCheck.rows[0].count) === 0) {
+          console.log(`🛠️ REPAIRING: Adding #general to existing guild [${guild.name}]`);
+          await query(
+            'INSERT INTO channels (guild_id, name, type) VALUES ($1, $2, $3)',
+            [guild.id, 'general', 'text']
+          );
+        }
+      }
     }
 
     // Ensure test users exist (always check individually)
