@@ -158,7 +158,7 @@ export default {
       this.success = ''
       this.loading = true
       
-      const endpoint = this.isLogin ? '/login' : '/register'
+      const endpoint = this.isLogin ? '/api/login' : '/api/register'
       const payload = this.isLogin 
         ? { username: this.username, password: this.password }
         : { username: this.username, email: this.email, password: this.password }
