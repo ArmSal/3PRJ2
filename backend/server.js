@@ -62,7 +62,9 @@ const query = async (sql, params) => {
 // ============ DATABASE INIT ============
 const initDatabase = async () => {
   try {
+    console.log('Starting database initialization...');
     if (isPostgres) {
+      console.log('Creating PostgreSQL tables...');
       // PostgreSQL tables
       await pool.query(`
         CREATE TABLE IF NOT EXISTS users (
@@ -175,10 +177,13 @@ const initDatabase = async () => {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-      console.log('PostgreSQL tables initialized');
+      console.log('PostgreSQL tables initialized successfully');
+    } else {
+      console.log('MySQL mode - tables should be created by Docker');
     }
   } catch (e) {
-    console.error('Database init error:', e);
+    console.error('Database init error:', e.message);
+    console.error(e.stack);
   }
 };
 
