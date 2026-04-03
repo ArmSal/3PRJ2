@@ -5,6 +5,8 @@ import Games from './views/Games.vue'
 import Pong from './views/Pong.vue'
 import Snake from './views/Snake.vue'
 import Spectator from './views/Spectator.vue'
+import Trivia from './views/Trivia.vue'
+import Tournaments from './views/Tournaments.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -13,7 +15,9 @@ const routes = [
   { path: '/games', component: Games, meta: { requiresAuth: true } },
   { path: '/games/pong', component: Pong, meta: { requiresAuth: true } },
   { path: '/pong', component: Pong },
-  { path: '/snake', component: Snake },
+  { path: '/snake', component: Snake, meta: { requiresAuth: true } },
+  { path: '/trivia', component: Trivia, meta: { requiresAuth: true } },
+  { path: '/tournaments', component: Tournaments, meta: { requiresAuth: true } },
   { path: '/spectate/:id', component: Spectator, meta: { requiresAuth: true } },
 ]
 

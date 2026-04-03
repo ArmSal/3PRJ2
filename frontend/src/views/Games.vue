@@ -12,6 +12,7 @@
         <h1>🎮 Game Lobby</h1>
       </div>
       <div class="header-right">
+        <button @click="$router.push('/tournaments')" class="btn-tournaments">🏆 Tournaments</button>
         <div class="coins-badge">
           <span class="coin-icon">🪙</span>
           <span>{{ userCoins }}</span>
@@ -198,18 +199,18 @@ export default {
           name: 'Snake Arena',
           description: 'Multiplayer snake battle royale',
           icon: '🐍',
-          players: 0,
-          status: 'coming-soon',
-          statusText: 'Soon'
+          players: 12,
+          status: 'active',
+          statusText: 'Live'
         },
         {
           id: 3,
           name: 'Trivia Battle',
           description: 'Test your knowledge',
           icon: '❓',
-          players: 0,
-          status: 'coming-soon',
-          statusText: 'Soon'
+          players: 5,
+          status: 'active',
+          statusText: 'Live'
         },
         {
           id: 4,
@@ -269,6 +270,8 @@ export default {
     },
     launchGame(game) {
       if (game.id === 1) this.playPong()
+      if (game.id === 2) this.$router.push('/snake')
+      if (game.id === 3) this.$router.push('/trivia')
     },
     playPong() {
       this.$router.push('/games/pong')
@@ -355,8 +358,19 @@ export default {
   font-weight: 600;
 }
 
-.coin-icon {
-  font-size: 16px;
+.btn-tournaments {
+  background: rgba(249, 168, 37, 0.2);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-tournaments:hover {
+  background: var(--warning);
+  color: #000;
 }
 
 /* Games Content */
