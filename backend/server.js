@@ -15,175 +15,142 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// ============ DATABASE ============
-let pool;
-let isPostgres = false;
-
-// Try DATABASE_URL first (Render), then check if we should use MySQL (local Docker)
-const dbUrl = process.env.DATABASE_URL;
-const isLocalMySQL = !dbUrl && (process.env.DB_HOST === 'mysql' || process.env.DB_HOST === 'localhost' || process.env.DB_HOST === '127.0.0.1');
-
-if (dbUrl && !isLocalMySQL) {
-  const { Pool } = require('pg');
-  pool = new Pool({
-    connectionString: dbUrl,
-    ssl: { rejectUnauthorized: false }
-  });
-  isPostgres = true;
-  console.log('Using PostgreSQL database (Render)');
-} else {
-  const mysql = require('mysql2/promise');
-  // En Docker, utiliser le port interne 3306. En local, utiliser 3307
-  const isDocker = process.env.DB_HOST === 'mysql';
-  pool = mysql.createPool({
-    host: process.env.DB_HOST || 'mysql',
-    port: isDocker ? 3306 : 3307,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'password',
-    database: process.env.DB_NAME || 'gaming_platform',
-    waitForConnections: true,
-    connectionLimit: 10,
-  });
-  console.log('Using MySQL database (Docker:', isDocker ? 'yes' : 'no', ')');
-}
+// ============ DATABASE (PostgreSQL Only) ============
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+console.log('Using PostgreSQL database');
 
 const query = async (sql, params) => {
-  if (isPostgres) {
-    let pgSql = sql;
-    let paramIndex = 1;
-    while (pgSql.includes('?')) {
-      pgSql = pgSql.replace('?', `$${paramIndex}`);
-      paramIndex++;
-    }
-    const result = await pool.query(pgSql, params);
-    return [result.rows];
-  } else {
-    return await pool.execute(sql, params);
+  let pgSql = sql;
+  let paramIndex = 1;
+  while (pgSql.includes('?')) {
+    pgSql = pgSql.replace('?', `$${paramIndex}`);
+    paramIndex++;
   }
-}
+  const result = await pool.query(pgSql, params);
+  return [result.rows];
+};
 
 // ============ DATABASE INIT ============
 const initDatabase = async () => {
   try {
     console.log('Starting database initialization...');
-    if (isPostgres) {
-      console.log('Creating PostgreSQL tables...');
-      // PostgreSQL tables
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS users (
-          id SERIAL PRIMARY KEY,
-          username VARCHAR(255) UNIQUE NOT NULL,
-          email VARCHAR(255) UNIQUE NOT NULL,
-          password_hash VARCHAR(255) NOT NULL,
-          avatar_url VARCHAR(255),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        CREATE TABLE IF NOT EXISTS user_profiles (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          campus VARCHAR(255),
-          bio TEXT,
-          level INTEGER DEFAULT 1,
-          xp INTEGER DEFAULT 0
-        );
-        
-        CREATE TABLE IF NOT EXISTS guilds (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          description TEXT,
-          created_by INTEGER REFERENCES users(id),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        CREATE TABLE IF NOT EXISTS guild_members (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          guild_id INTEGER REFERENCES guilds(id) ON DELETE CASCADE,
-          role VARCHAR(50) DEFAULT 'member',
-          joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          UNIQUE(user_id, guild_id)
-        );
-        
-        CREATE TABLE IF NOT EXISTS channels (
-          id SERIAL PRIMARY KEY,
-          guild_id INTEGER REFERENCES guilds(id) ON DELETE CASCADE,
-          name VARCHAR(255) NOT NULL,
-          type VARCHAR(50) DEFAULT 'text',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        CREATE TABLE IF NOT EXISTS messages (
-          id SERIAL PRIMARY KEY,
-          channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
-          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          content TEXT NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        CREATE TABLE IF NOT EXISTS games (
-          id SERIAL PRIMARY KEY,
-          channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
-          game_type VARCHAR(50) NOT NULL,
-          player1_id INTEGER REFERENCES users(id),
-          player2_id INTEGER REFERENCES users(id),
-          winner_id INTEGER REFERENCES users(id),
-          score1 INTEGER DEFAULT 0,
-          score2 INTEGER DEFAULT 0,
-          status VARCHAR(50) DEFAULT 'waiting',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          ended_at TIMESTAMP
-        );
-        
-        CREATE TABLE IF NOT EXISTS game_scores (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          game_type VARCHAR(50) NOT NULL,
-          score INTEGER DEFAULT 0,
-          games_played INTEGER DEFAULT 0,
-          games_won INTEGER DEFAULT 0,
-          UNIQUE(user_id, game_type)
-        );
-        
-        CREATE TABLE IF NOT EXISTS tournaments (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          description TEXT,
-          game_type VARCHAR(50) NOT NULL,
-          campus1 VARCHAR(255),
-          campus2 VARCHAR(255),
-          max_participants INTEGER DEFAULT 16,
-          created_by INTEGER REFERENCES users(id),
-          status VARCHAR(50) DEFAULT 'pending',
-          starts_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        CREATE TABLE IF NOT EXISTS tournament_participants (
-          id SERIAL PRIMARY KEY,
-          tournament_id INTEGER REFERENCES tournaments(id) ON DELETE CASCADE,
-          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          campus VARCHAR(255),
-          registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          UNIQUE(tournament_id, user_id)
-        );
-        
-        CREATE TABLE IF NOT EXISTS tournament_matches (
-          id SERIAL PRIMARY KEY,
-          tournament_id INTEGER REFERENCES tournaments(id) ON DELETE CASCADE,
-          round INTEGER NOT NULL,
-          match_number INTEGER NOT NULL,
-          player1_id INTEGER REFERENCES users(id),
-          player2_id INTEGER REFERENCES users(id),
-          winner_id INTEGER REFERENCES users(id),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-      console.log('PostgreSQL tables initialized successfully');
-    } else {
-      console.log('MySQL mode - tables should be created by Docker');
-    }
+    console.log('Creating PostgreSQL tables...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        avatar_url VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE TABLE IF NOT EXISTS user_profiles (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        campus VARCHAR(255),
+        bio TEXT,
+        level INTEGER DEFAULT 1,
+        xp INTEGER DEFAULT 0
+      );
+      
+      CREATE TABLE IF NOT EXISTS guilds (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_by INTEGER REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE TABLE IF NOT EXISTS guild_members (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        guild_id INTEGER REFERENCES guilds(id) ON DELETE CASCADE,
+        role VARCHAR(50) DEFAULT 'member',
+        joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, guild_id)
+      );
+      
+      CREATE TABLE IF NOT EXISTS channels (
+        id SERIAL PRIMARY KEY,
+        guild_id INTEGER REFERENCES guilds(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        type VARCHAR(50) DEFAULT 'text',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE TABLE IF NOT EXISTS games (
+        id SERIAL PRIMARY KEY,
+        channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
+        game_type VARCHAR(50) NOT NULL,
+        player1_id INTEGER REFERENCES users(id),
+        player2_id INTEGER REFERENCES users(id),
+        winner_id INTEGER REFERENCES users(id),
+        score1 INTEGER DEFAULT 0,
+        score2 INTEGER DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'waiting',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ended_at TIMESTAMP
+      );
+      
+      CREATE TABLE IF NOT EXISTS game_scores (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        game_type VARCHAR(50) NOT NULL,
+        score INTEGER DEFAULT 0,
+        games_played INTEGER DEFAULT 0,
+        games_won INTEGER DEFAULT 0,
+        UNIQUE(user_id, game_type)
+      );
+      
+      CREATE TABLE IF NOT EXISTS tournaments (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        game_type VARCHAR(50) NOT NULL,
+        campus1 VARCHAR(255),
+        campus2 VARCHAR(255),
+        max_participants INTEGER DEFAULT 16,
+        created_by INTEGER REFERENCES users(id),
+        status VARCHAR(50) DEFAULT 'pending',
+        starts_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE TABLE IF NOT EXISTS tournament_participants (
+        id SERIAL PRIMARY KEY,
+        tournament_id INTEGER REFERENCES tournaments(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        campus VARCHAR(255),
+        registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tournament_id, user_id)
+      );
+      
+      CREATE TABLE IF NOT EXISTS tournament_matches (
+        id SERIAL PRIMARY KEY,
+        tournament_id INTEGER REFERENCES tournaments(id) ON DELETE CASCADE,
+        round INTEGER NOT NULL,
+        match_number INTEGER NOT NULL,
+        player1_id INTEGER REFERENCES users(id),
+        player2_id INTEGER REFERENCES users(id),
+        winner_id INTEGER REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('PostgreSQL tables initialized successfully');
   } catch (e) {
     console.error('Database init error:', e.message);
     console.error(e.stack);
