@@ -33,15 +33,18 @@ if (dbUrl && !isLocalMySQL) {
   console.log('Using PostgreSQL database (Render)');
 } else {
   const mysql = require('mysql2/promise');
+  // En Docker, utiliser le port interne 3306. En local, utiliser 3307
+  const isDocker = process.env.DB_HOST === 'mysql';
   pool = mysql.createPool({
     host: process.env.DB_HOST || 'mysql',
+    port: isDocker ? 3306 : 3307,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'password',
     database: process.env.DB_NAME || 'gaming_platform',
     waitForConnections: true,
     connectionLimit: 10,
   });
-  console.log('Using MySQL database (local/Docker)');
+  console.log('Using MySQL database (Docker:', isDocker ? 'yes' : 'no', ')');
 }
 
 const query = async (sql, params) => {

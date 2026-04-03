@@ -4,6 +4,7 @@ import Chat from './views/Chat.vue'
 import Games from './views/Games.vue'
 import Pong from './views/Pong.vue'
 import Snake from './views/Snake.vue'
+import Spectator from './views/Spectator.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -13,6 +14,7 @@ const routes = [
   { path: '/games/pong', component: Pong, meta: { requiresAuth: true } },
   { path: '/pong', component: Pong },
   { path: '/snake', component: Snake },
+  { path: '/spectate/:id', component: Spectator, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
