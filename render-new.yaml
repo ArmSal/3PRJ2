@@ -1,0 +1,54 @@
+services:
+  - type: pserv
+    name: gaming-db
+    plan: free
+    env: docker
+    dockerfilePath: Dockerfile.db
+    envVars:
+      - key: POSTGRES_USER
+        value: gaming_user
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+      - key: POSTGRES_DB
+        value: gaming_platform
+
+  - type: web
+    name: gaming-backend
+    plan: free
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          name: gaming-db
+          type: pserv
+          property: hostport
+      - key: DB_HOST
+        fromService:
+          name: gaming-db
+          type: pserv
+          property: host
+      - key: DB_USER
+        value: gaming_user
+      - key: DB_PASSWORD
+        fromService:
+          name: gaming-db
+          type: pserv
+          envVarKey: POSTGRES_PASSWORD
+      - key: DB_NAME
+        value: gaming_platform
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
+    healthCheckPath: /
+
+  - type: static
+    name: gaming-frontend
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://gaming-backend.onrender.com
