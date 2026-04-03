@@ -32,8 +32,14 @@ const launchGame = (gameId: number) => {
 }
 
 const joinGame = (gameId: string) => {
-  // Logic to join an existing live game
   console.log(`Linking to Arena: ${gameId}`)
+  // Assuming a reactive join logic
+  router.push(`/app/pong?join=${gameId}`)
+}
+
+const spectateGame = (gameId: string) => {
+  console.log(`📡 NEURAL SPECTATOR LINK ESTABLISHED: ${gameId}`)
+  router.push(`/app/spectate?id=${gameId}`)
 }
 </script>
 
@@ -104,26 +110,49 @@ const joinGame = (gameId: string) => {
           <div class="h-px flex-1 bg-white/5 ml-8"></div>
        </div>
 
-       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div 
-             v-for="game in gameStore.availableGames" 
-             :key="game.gameId"
-             class="glass-blur p-4 rounded-[24px] flex items-center justify-between group hover:border-primary/30 transition-all border border-white/5"
-          >
-             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-black/40 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
-                   {{ getIcon(game.gameType) }}
-                </div>
-                <div class="flex flex-col">
-                   <h4 class="text-[11px] font-black italic uppercase tracking-tight text-white">{{ game.player1 }}'s LOBBY</h4>
-                   <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Protocol: {{ game.gameType }}</span>
-                </div>
-             </div>
-             <button @click="joinGame(game.gameId)" class="px-5 py-2 bg-slate-800 hover:bg-emerald-600 rounded-xl text-[9px] font-black italic uppercase tracking-[0.2em] transition-all group-hover:scale-105 active:scale-95 shadow-md">
-                ENGAGE
-             </button>
-          </div>
-       </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+           <div 
+              v-for="game in gameStore.availableGames" 
+              :key="game.gameId"
+              class="bg-black/40 p-5 rounded-[28px] border border-white/5 hover:border-primary/40 transition-all flex flex-col gap-4 group"
+           >
+              <div class="flex items-center justify-between">
+                 <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-lg">{{ getIcon(game.gameType) }}</div>
+                    <div class="flex flex-col">
+                       <h4 class="text-[10px] font-black italic uppercase tracking-tight text-white">{{ game.gameType }} Arena</h4>
+                       <span class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Operation: {{ game.gameId.split('-')[1] }}</span>
+                    </div>
+                 </div>
+                 <div class="px-2 py-1 bg-red-500/10 border border-red-500/20 rounded-md text-[8px] font-black text-red-500 uppercase">Live</div>
+              </div>
+
+              <!-- Personnel List -->
+              <div class="flex flex-wrap gap-2 py-3 border-y border-white/5">
+                 <div class="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                    <div class="w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center text-[6px] font-bold">{{ game.player1.charAt(0).toUpperCase() }}</div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">{{ game.player1 }}</span>
+                 </div>
+                 <div v-if="game.player2" class="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                    <div class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[6px] font-bold">{{ game.player2.charAt(0).toUpperCase() }}</div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">{{ game.player2 }}</span>
+                 </div>
+                 <div v-else class="flex items-center gap-2 px-2 py-1 bg-black/20 rounded-lg border border-dashed border-white/10 opacity-30">
+                    <span class="text-[8px] font-black uppercase tracking-widest">— WAITING —</span>
+                 </div>
+              </div>
+
+              <!-- Deployment Controls -->
+              <div class="grid grid-cols-2 gap-3 mt-2">
+                 <button @click="joinGame(game.gameId)" class="py-2.5 bg-slate-800 hover:bg-primary text-white rounded-xl text-[9px] font-black italic uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50" :disabled="!!game.player2">
+                    {{ game.player2 ? 'FULL' : 'JOIN' }}
+                 </button>
+                 <button @click="spectateGame(game.gameId)" class="py-2.5 bg-black/40 border border-white/10 hover:border-emerald-500/50 text-slate-400 hover:text-emerald-400 rounded-xl text-[9px] font-black italic uppercase tracking-widest transition-all shadow-inner active:scale-95">
+                    SPECTATE
+                 </button>
+              </div>
+           </div>
+        </div>
     </section>
   </div>
 </template>

@@ -116,6 +116,12 @@ onMounted(fetchTournaments)
            <h3 class="text-xl font-black italic uppercase text-white mb-2 truncate">{{ t.name }}</h3>
            <p class="text-[11px] font-bold text-slate-500 mb-8 uppercase leading-relaxed">{{ t.description }}</p>
 
+           <!-- Participants Snapshot -->
+           <div class="flex flex-wrap gap-1 mb-6 h-6 overflow-hidden">
+              <div v-for="p in 3" :key="p" class="w-5 h-5 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-[7px] font-black first:ml-0 -ml-2 transition-all hover:ml-1">{{ p === 1 ? 'A' : 'B' }}</div>
+              <span class="text-[8px] font-bold text-slate-600 ml-2 uppercase">+ {{ t.participant_count }} linked</span>
+           </div>
+
            <div class="mt-auto space-y-4">
               <div class="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-slate-600">
                  <span>Participants</span>
@@ -125,20 +131,22 @@ onMounted(fetchTournaments)
                  <div class="bg-primary h-full transition-all duration-1000" :style="{ width: `${(t.participant_count / t.max_participants) * 100}%` }"></div>
               </div>
 
-              <button 
-                v-if="t.status === 'pending'"
-                @click="joinTournament(t.id)" 
-                class="w-full py-4 bg-slate-800 hover:bg-primary text-white rounded-2xl text-[10px] font-black italic uppercase tracking-widest transition-all group-hover:shadow-lg group-hover:shadow-primary/10"
-              >
-                Link Neural Signature
-              </button>
-              <button 
-                v-else
-                @click="showBrackets(t.id)"
-                class="w-full py-4 border border-primary/30 text-primary rounded-2xl text-[10px] font-black italic uppercase tracking-widest hover:bg-primary/10 transition-all font-inter"
-              >
-                Spectate Combat
-              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button 
+                  v-if="t.status === 'pending'"
+                  @click="joinTournament(t.id)" 
+                  class="py-3 bg-primary hover:bg-primary/80 text-white rounded-xl text-[9px] font-black italic uppercase tracking-widest transition-all"
+                  :disabled="t.participant_count >= t.max_participants"
+                >
+                  {{ t.participant_count >= t.max_participants ? 'FULL' : 'JOIN' }}
+                </button>
+                <button 
+                  @click="showBrackets(t.id)"
+                  class="py-3 bg-white/5 border border-white/10 text-slate-400 hover:text-white rounded-xl text-[9px] font-black italic uppercase tracking-widest transition-all"
+                >
+                  SPECTATE
+                </button>
+              </div>
            </div>
         </div>
       </div>
