@@ -45,6 +45,9 @@ const query = async (sql, params) => {
     pgSql = pgSql.replace('?', `$${paramIndex}`);
     paramIndex++;
   }
+  if (pgSql.trim().toUpperCase().startsWith('INSERT') && !pgSql.toUpperCase().includes('RETURNING')) {
+    pgSql += ' RETURNING id';
+  }
   const result = await pool.query(pgSql, params);
   return [result.rows];
 };

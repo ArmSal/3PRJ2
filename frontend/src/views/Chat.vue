@@ -259,6 +259,10 @@
         </div>
       </div>
     </aside>
+
+    <!-- Hidden audio elements for WebRTC -->
+    <audio ref="localAudio" autoplay muted style="display:none"></audio>
+    <div id="remote-audios"></div>
   </div>
 </template>
 
@@ -285,6 +289,9 @@ export default {
       voiceChannel: null,
       voiceUsers: [],
       isMuted: false,
+      localStream: null,
+      peers: {}, // Track RTCPeerConnections
+
 
     }
   },
@@ -325,6 +332,14 @@ export default {
       this.onlineUsers = users.filter(u => u.online)
       this.offlineUsers = users.filter(u => !u.online)
     })
+
+    // WebRTC signaling
+    this.socket.on('voice-user-joined', this.handleVoiceUserJoined)
+    this.socket.on('voice-offer', this.handleVoiceOffer)
+    this.socket.on('voice-answer', this.handleVoiceAnswer)
+    this.socket.on('ice-candidate', this.handleIceCandidate)
+    this.socket.on('voice-user-left', this.handleVoiceUserLeft)
+    
     
     this.socket.on('user:typing', ({ username, isTyping }) => {
       if (isTyping) {
@@ -344,13 +359,27 @@ export default {
   },
   methods: {
 
-    toggleVoice(channelName) {
+    async toggleVoice(channelName) {
       if (this.voiceChannel === channelName) {
         this.disconnectVoice();
       } else {
+        if(this.voiceChannel) this.disconnectVoice();
         this.voiceChannel = channelName;
-        this.socket.emit('voice-join', this.selectedGuild.id + '-' + channelName);
-        this.voiceUsers.push({ id: this.user.id, username: this.user.username });
+        
+        try {
+          this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          if(this.$refs.localAudio) {
+            this.$refs.localAudio.srcObject = this.localStream;
+          }
+          this.socket.emit('voice-join', this.selectedGuild.id + '-' + channelName);
+          if(!this.voiceUsers.find(u => u.id === this.user.id)) {
+            this.voiceUsers.push({ id: this.user.id, username: this.user.username, socketId: this.socket.id });
+          }
+        } catch (err) {
+          console.error("Failed to access microphone", err);
+          alert("Microphone access is required for voice chat.");
+          this.voiceChannel = null;
+        }
       }
     },
     disconnectVoice() {
@@ -359,9 +388,97 @@ export default {
       }
       this.voiceChannel = null;
       this.voiceUsers = [];
+      
+      // Cleanup WebRTC
+      if(this.localStream) {
+         this.localStream.getTracks().forEach(track => track.stop());
+         this.localStream = null;
+      }
+      Object.keys(this.peers).forEach(socketId => {
+         this.peers[socketId].close();
+         const audioEl = document.getElementById('audio-' + socketId);
+         if(audioEl) audioEl.remove();
+      });
+      this.peers = {};
     },
     toggleMute() {
       this.isMuted = !this.isMuted;
+      if (this.localStream) {
+        this.localStream.getAudioTracks().forEach(track => {
+          track.enabled = !this.isMuted;
+        });
+      }
+    },
+    createPeerConnection(targetSocketId) {
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          this.socket.emit('ice-candidate', { to: targetSocketId, candidate: event.candidate });
+        }
+      };
+      
+      pc.ontrack = (event) => {
+        let audioEl = document.getElementById('audio-' + targetSocketId);
+        if (!audioEl) {
+          audioEl = document.createElement('audio');
+          audioEl.id = 'audio-' + targetSocketId;
+          audioEl.autoplay = true;
+          document.getElementById('remote-audios').appendChild(audioEl);
+        }
+        audioEl.srcObject = event.streams[0];
+      };
+      
+      if (this.localStream) {
+        this.localStream.getTracks().forEach(track => {
+          pc.addTrack(track, this.localStream);
+        });
+      }
+      return pc;
+    },
+    async handleVoiceUserJoined({ userId, username, socketId }) {
+      if(socketId === this.socket.id) return;
+      if(!this.voiceUsers.find(u => u.socketId === socketId)) {
+        this.voiceUsers.push({ id: userId, username, socketId });
+      }
+      // Create offer to the new user
+      const pc = this.createPeerConnection(socketId);
+      this.peers[socketId] = pc;
+      
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      this.socket.emit('voice-offer', { to: socketId, offer });
+    },
+    async handleVoiceOffer({ from, fromUser, offer }) {
+      if(!this.voiceUsers.find(u => u.socketId === from)) {
+        this.voiceUsers.push({ ...fromUser, socketId: from });
+      }
+      const pc = this.createPeerConnection(from);
+      this.peers[from] = pc;
+      
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      this.socket.emit('voice-answer', { to: from, answer });
+    },
+    async handleVoiceAnswer({ from, answer }) {
+      const pc = this.peers[from];
+      if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    },
+    async handleIceCandidate({ from, candidate }) {
+      const pc = this.peers[from];
+      if (pc && candidate) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    },
+    handleVoiceUserLeft({ socketId }) {
+      this.voiceUsers = this.voiceUsers.filter(u => u.socketId !== socketId);
+      if (this.peers[socketId]) {
+        this.peers[socketId].close();
+        delete this.peers[socketId];
+      }
+      const audioEl = document.getElementById('audio-' + socketId);
+      if(audioEl) audioEl.remove();
     },
 
     async loadGuilds() {
