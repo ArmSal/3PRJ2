@@ -283,10 +283,17 @@ export default {
           this.ball.y > paddle.y &&
           this.ball.y < paddle.y + paddle.height) {
         this.ball.dx = -this.ball.dx
-        // Add some angle based on where it hit the paddle
         const hitPoint = (this.ball.y - paddle.y) / paddle.height
         this.ball.dy = (hitPoint - 0.5) * 10
       }
+    },
+    
+    interpolateGameObjects() {
+      const factor = this.interpolationFactor
+      this.ball.x += (this.targetBall.x - this.ball.x) * factor
+      this.ball.y += (this.targetBall.y - this.ball.y) * factor
+      this.paddle1.y += (this.targetPaddle1.y - this.paddle1.y) * factor
+      this.paddle2.y += (this.targetPaddle2.y - this.paddle2.y) * factor
     },
     
     draw() {
@@ -369,41 +376,6 @@ export default {
 
 .game-info {
   text-align: center;
->>>>>>> ffac17d9a68243c31599178b01b4878b082c9953
-}
-
-.score {
-  display: flex;
-<<<<<<< HEAD
-  gap: 40px;
-  margin-bottom: 20px;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.player1 {
-  color: #e94560;
-}
-
-.player2 {
-  color: #0f3460;
-}
-
-canvas {
-  border: 2px solid #444;
-  border-radius: 4px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-}
-
-.controls {
-  margin-top: 20px;
-  padding: 15px 30px;
-  background: #16213e;
-  border-radius: 8px;
-}
-
-.controls strong {
-  color: #e94560;
 }
 
 .score {
