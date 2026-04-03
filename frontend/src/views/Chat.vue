@@ -250,35 +250,6 @@ const toggleVoiceChannel = async () => {
                        </div>
                     </div>
                  </div>
-
-                 <div class="section">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 flex items-center justify-between">
-                       Voice Comms
-                       <span v-if="voiceStore.voiceUsers.length > 0" class="text-[10px] text-emerald-500 font-bold">{{ voiceStore.voiceUsers.length + 1 }} connected</span>
-                    </h4>
-                    <div 
-                       @click="toggleVoiceChannel"
-                       :class="cn(
-                         'group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all',
-                         voiceStore.isInVoice ? 'bg-emerald-500/20 text-emerald-400' : 'hover:bg-white/5 text-slate-500 hover:text-slate-300'
-                       )"
-                    >
-                       <span class="text-lg" :class="voiceStore.isInVoice ? 'animate-pulse' : 'opacity-50'">
-                         {{ voiceStore.isInVoice ? '🔊' : '🔇' }}
-                       </span>
-                       <span class="text-xs font-bold uppercase tracking-tight">
-                         {{ voiceStore.isInVoice ? 'Voice Active' : 'Join Voice' }}
-                       </span>
-                       <span v-if="voiceStore.isInVoice" class="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    </div>
-                    <!-- Voice Users -->
-                    <div v-if="voiceStore.isInVoice && voiceStore.voiceUsers.length > 0" class="mt-2 space-y-1">
-                       <div v-for="userId in voiceStore.voiceUsers" :key="userId" class="flex items-center gap-2 px-3 py-1 text-[10px] text-slate-400">
-                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          <span>User {{ userId.slice(0, 6) }}</span>
-                       </div>
-                    </div>
-                 </div>
               </div>
 
               <!-- USER PANEL -->
@@ -340,14 +311,15 @@ const toggleVoiceChannel = async () => {
                     />
                     <button 
                       @click="toggleVoiceChannel"
+                      title="microphone"
                       :class="cn(
-                        'px-4 py-2 rounded-xl text-[10px] font-black italic tracking-widest shadow-lg transition-all active:scale-95 flex items-center gap-2',
+                        'p-2 rounded-xl text-xl transition-all active:scale-95',
                         voiceStore.isInVoice 
-                          ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20' 
-                          : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                          ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30' 
+                          : 'hover:bg-white/10 text-slate-400 hover:text-slate-300'
                       )"
                     >
-                      {{ voiceStore.isInVoice ? '🔊 VOICE ON' : '🎙️ JOIN VOICE' }}
+                      {{ voiceStore.isInVoice ? '🎙️' : '🔇' }}
                     </button>
                     <button @click="sendMessage" class="px-6 py-2 bg-primary hover:bg-primary/80 rounded-xl text-[10px] font-black italic tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-2">
                        SEND <span>⚡</span>
