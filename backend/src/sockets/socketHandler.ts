@@ -200,8 +200,10 @@ export default (io: Server) => {
 
     socket.on('pong-move', (data: { gameId: string, direction: 'up' | 'down' }) => {
       if (!socket.data.userId) return;
-      // Determine player num based on game state (simplified for hackathon)
-      pongService.movePaddle(data.gameId, 1, data.direction);
+      const state = pongService.getGame(data.gameId);
+      if (!state) return;
+      const playerNum = socket.data.userId === state.player1 ? 1 : 2;
+      pongService.movePaddle(data.gameId, playerNum, data.direction);
     });
 
     socket.on('trivia-answer', (data: { gameId: string, answerIndex: number }) => {

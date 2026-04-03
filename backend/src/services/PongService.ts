@@ -10,6 +10,7 @@ interface PongState {
   paddle2Y: number;
   score1: number;
   score2: number;
+  countdown: number;
   gameOver: boolean;
   interval?: NodeJS.Timeout;
 }
@@ -31,12 +32,17 @@ export class PongService {
       paddle2Y: 150,
       score1: 0,
       score2: 0,
+      countdown: 5,
       gameOver: false
     };
 
     state.interval = setInterval(() => this.update(gameId, io), 1000 / 60);
     this.games.set(gameId, state);
     return state;
+  }
+
+  getGame(gameId: string): PongState | undefined {
+    return this.games.get(gameId);
   }
 
   movePaddle(gameId: string, playerNum: 1 | 2, direction: 'up' | 'down'): void {
@@ -55,9 +61,13 @@ export class PongService {
     const state = this.games.get(gameId);
     if (!state || state.gameOver) return;
 
-    // Ball movement
-    state.ball.x += state.ball.vx;
-    state.ball.y += state.ball.vy;
+    if (state.countdown > 0) {
+      state.countdown -= (1 / 60);
+    } else {
+      // Ball movement only if countdown finished
+      state.ball.x += state.ball.vx;
+      state.ball.y += state.ball.vy;
+    }
 
     // Wall collision
     if (state.ball.y <= 0 || state.ball.y >= this.HEIGHT) {
@@ -92,10 +102,11 @@ export class PongService {
 
     io.to(`game-${gameId}`).emit('pong-state', {
       ball: state.ball,
-      paddle1Y: state.paddle1Y,
-      paddle2Y: state.paddle2Y,
+      paddle1: { y: state.paddle1Y, height: this.PADDLE_HEIGHT, width: this.PADDLE_WIDTH },
+      paddle2: { y: state.paddle2Y, height: this.PADDLE_HEIGHT, width: this.PADDLE_WIDTH },
       score1: state.score1,
       score2: state.score2,
+      countdown: Math.max(0, Math.ceil(state.countdown)),
       gameOver: state.gameOver
     });
   }

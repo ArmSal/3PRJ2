@@ -2,10 +2,13 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useGameStore } from '@/stores/game'
 import { useUserStore } from '@/stores/user'
+import { useChatStore } from '@/stores/chat'
 import { cn } from '@/lib/utils'
+import type { Game } from '@/types'
 
 const gameStore = useGameStore()
 const userStore = useUserStore()
+const chatStore = useChatStore()
 
 const pongCanvas = ref<HTMLCanvasElement | null>(null)
 const ctx = ref<CanvasRenderingContext2D | null>(null)
@@ -24,6 +27,7 @@ const gameState = ref({
   paddle2: { y: 150, height: 100, width: 10 },
   score1: 0,
   score2: 0,
+  countdown: 0,
   gameOver: false
 })
 
@@ -73,12 +77,23 @@ const initGame = () => {
 }
 
 const createGame = () => {
+  if (!chatStore.selectedChannel) {
+     console.error('🛑 [GAME] Error: Identity tactical link failed. No channel selected.');
+     return;
+  }
   loading.value = true
-  gameStore.socket?.emit('create-game', { channelId: 1, gameType: 'pong' })
+  gameStore.socket?.emit('create-game', { 
+    channelId: chatStore.selectedChannel.id, 
+    gameType: 'pong' 
+  })
 }
 
-const joinGame = (gameId: string) => {
-  gameStore.socket?.emit('join-game', { gameId })
+const joinGame = (game: Game) => {
+  gameStore.socket?.emit('join-game', { 
+    gameId: game.gameId,
+    player1Id: game.player1Id,
+    gameType: 'pong'
+  })
 }
 
 const leaveGame = () => {
@@ -137,6 +152,24 @@ const draw = () => {
   // Neural Paddles
   drawPaddle(0, gameState.value.paddle1.y, '#10b981') // Emerald Player (Left)
   drawPaddle(width - 10, gameState.value.paddle2.y, '#3b82f6') // Azure Player (Right)
+  
+  // Technical Countdown Overlay
+  if (gameState.value.countdown > 0) {
+    ctx.value.fillStyle = 'rgba(0, 0, 0, 0.4)'
+    ctx.value.fillRect(0, 0, width, height)
+    
+    ctx.value.font = '900 italic 80px sans-serif'
+    ctx.value.fillStyle = '#ffffff'
+    ctx.value.textAlign = 'center'
+    ctx.value.shadowBlur = 30
+    ctx.value.shadowColor = '#ffffff'
+    ctx.value.fillText(`T - ${gameState.value.countdown}`, width / 2, height / 2 + 30)
+    ctx.value.shadowBlur = 0
+    
+    ctx.value.font = '900 12px sans-serif'
+    ctx.value.fillStyle = '#64748b'
+    ctx.value.fillText('NEURAL LINK STABILIZING', width / 2, height / 2 + 70)
+  }
 }
 
 const drawPaddle = (x: number, y: number, color: string) => {
@@ -208,17 +241,17 @@ const gameLoop = () => {
           <div v-for="game in gameStore.availableGames.filter(g => g.gameType === 'pong')" :key="game.gameId" class="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-primary/30 transition-all group">
              <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-black italic border border-indigo-500/20">
-                   {{ game.player1.charAt(0) }}
-                </div>
-                <div class="flex flex-col">
-                   <span class="text-xs font-black italic text-white uppercase">{{ game.player1 }}</span>
-                   <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-none">Ready to Engage</span>
-                </div>
-             </div>
-             <button @click="joinGame(game.gameId)" class="px-5 py-2 bg-slate-800 text-[9px] font-black italic uppercase tracking-widest rounded-xl hover:bg-emerald-600 active:scale-95 transition-all">
-                ENGAGE
-             </button>
-          </div>
+                   {{ (game.player1 || 'U').charAt(0).toUpperCase() }}
+                 </div>
+                 <div class="flex flex-col">
+                    <span class="text-xs font-black italic text-white uppercase">{{ game.player1 }}</span>
+                    <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-none">Ready to Engage</span>
+                 </div>
+              </div>
+              <button @click="joinGame(game)" class="px-5 py-2 bg-slate-800 text-[9px] font-black italic uppercase tracking-widest rounded-xl hover:bg-emerald-600 active:scale-95 transition-all">
+                 ENGAGE
+              </button>
+           </div>
         </div>
       </div>
     </div>

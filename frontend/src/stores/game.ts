@@ -48,6 +48,19 @@ export const useGameStore = defineStore('game', {
         console.warn('Alert: Socket connection terminated')
       })
 
+      this.socket.on('game-available', (game: Game) => {
+        console.log('📡 [NEXUS] New game session available:', game);
+        if (!this.availableGames.find(g => g.gameId === game.gameId)) {
+          this.availableGames.push(game)
+        }
+      })
+
+      this.socket.on('game-started', (data: { gameId: string }) => {
+        console.log('⚔️ [NEXUS] Technical engagement initiated:', data.gameId);
+        this.activeGameId = data.gameId
+        this.availableGames = this.availableGames.filter(g => g.gameId !== data.gameId)
+      })
+
       this.socket.on('error', (err: any) => {
         this.error = err.message || 'Transmission error'
       })

@@ -27,6 +27,7 @@ export interface Game {
   gameId: string;
   gameType: 'snake' | 'pong' | 'trivia' | 'chess';
   player1: string;
+  player1Id: number;
   player2?: string;
   status: 'waiting' | 'playing' | 'finished';
 }
