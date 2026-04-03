@@ -1,189 +1,218 @@
 <template>
   <div class="pong-container">
-    <h1>Pong</h1>
-    <div class="score">
-      <span class="player1">Joueur 1: {{ score1 }}</span>
-      <span class="player2">Joueur 2: {{ score2 }}</span>
-    </div>
-    <canvas ref="pongCanvas" width="800" height="400"></canvas>
-    <div class="controls">
-      <div class="control-group">
-        <span>Joueur 1: <strong>W / S</strong></span>
+    <h1>Pong Multiplayer</h1>
+    
+    <!-- LOBBY -->
+    <div v-if="!inGame" class="lobby">
+      <div class="lobby-section">
+        <h2>Créer une partie</h2>
+        <button @click="createGame" class="create-btn">Créer Game</button>
       </div>
-      <div class="control-group">
-        <span>Joueur 2: <strong>↑ / ↓</strong></span>
+      
+      <div class="lobby-section">
+        <h2>Rejoindre une partie</h2>
+        <div v-if="availableGames.length === 0" class="no-games">
+          Aucune partie en attente
+        </div>
+        <div v-else class="games-list">
+          <div v-for="game in availableGames" :key="game.gameId" class="game-card">
+            <span>{{ game.gameType }} - {{ game.player1 }}</span>
+            <button @click="joinGame(game.gameId)" class="join-btn">Rejoindre</button>
+          </div>
+        </div>
+      </div>
+      
+      <div v-if="myGameId" class="my-game">
+        <p>Votre partie #{{ myGameId }} est en attente...</p>
       </div>
     </div>
-    <button @click="resetGame" class="reset-btn">Réinitialiser</button>
+    
+    <!-- GAME -->
+    <div v-else class="game-area">
+      <div class="game-info">
+        <span class="player-role">Vous êtes {{ playerRole }}</span>
+        <button @click="leaveGame" class="leave-btn">Quitter</button>
+      </div>
+      <div class="score">
+        <span class="player1">Joueur 1: {{ score1 }}</span>
+        <span class="player2">Joueur 2: {{ score2 }}</span>
+      </div>
+      <canvas ref="pongCanvas" width="800" height="400"></canvas>
+      <div class="controls">
+        <div class="control-group">
+          <span>Contrôles: <strong>{{ playerRole === 'Joueur 1' ? 'W / S' : '↑ / ↓' }}</strong></span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { io } from 'socket.io-client'
+
+const SOCKET_URL = 'http://localhost:3000'
+
 export default {
   name: 'Pong',
   data() {
     return {
+      socket: null,
       canvas: null,
       ctx: null,
       animationId: null,
+      inGame: false,
+      myGameId: null,
+      playerRole: '',
+      availableGames: [],
       score1: 0,
       score2: 0,
       keys: {},
-      ball: {
-        x: 400,
-        y: 200,
-        dx: 5,
-        dy: 5,
-        radius: 10,
-        speed: 5
-      },
-      paddle1: {
-        x: 20,
-        y: 150,
-        width: 10,
-        height: 100,
-        speed: 8
-      },
-      paddle2: {
-        x: 770,
-        y: 150,
-        width: 10,
-        height: 100,
-        speed: 8
+      gameState: {
+        ballX: 400,
+        ballY: 200,
+        paddle1Y: 160,
+        paddle2Y: 160
       }
     }
   },
   mounted() {
     this.canvas = this.$refs.pongCanvas
-    this.ctx = this.canvas.getContext('2d')
+    this.ctx = this.canvas?.getContext('2d')
     
     window.addEventListener('keydown', this.handleKeyDown)
     window.addEventListener('keyup', this.handleKeyUp)
     
+    this.connectSocket()
     this.gameLoop()
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.handleKeyDown)
     window.removeEventListener('keyup', this.handleKeyUp)
     cancelAnimationFrame(this.animationId)
+    this.socket?.disconnect()
   },
   methods: {
+    connectSocket() {
+      this.socket = io(SOCKET_URL, {
+        transports: ['websocket', 'polling']
+      })
+      
+      // Auth avec token
+      const token = localStorage.getItem('token')
+      if (token) {
+        this.socket.emit('authenticate', token)
+      }
+      
+      this.socket.on('authenticated', (data) => {
+        console.log('Socket auth:', data)
+      })
+      
+      // Game created
+      this.socket.on('game-created', (data) => {
+        this.myGameId = data.gameId
+      })
+      
+      // Game available (broadcast)
+      this.socket.on('game-available', (game) => {
+        this.availableGames.push(game)
+      })
+      
+      // Game started
+      this.socket.on('game-started', (data) => {
+        this.inGame = true
+        this.myGameId = data.gameId
+        // Determine role
+        const userId = JSON.parse(atob(localStorage.getItem('token').split('.')[1])).id
+        this.playerRole = data.player1 === userId ? 'Joueur 1' : 'Joueur 2'
+      })
+      
+      // Game state updates
+      this.socket.on('pong-state', (state) => {
+        this.gameState = state
+        this.score1 = state.score1
+        this.score2 = state.score2
+      })
+      
+      // Game ended
+      this.socket.on('game-ended', (data) => {
+        alert(`Partie terminée ! Gagnant: ${data.winner}`)
+        this.leaveGame()
+      })
+      
+      // Errors
+      this.socket.on('error', (data) => {
+        alert('Erreur: ' + data.message)
+      })
+    },
+    
+    createGame() {
+      // Default to channel 1 for now
+      this.socket.emit('create-game', { channelId: 1, gameType: 'pong' })
+    },
+    
+    joinGame(gameId) {
+      this.socket.emit('join-game', { gameId })
+    },
+    
+    leaveGame() {
+      this.inGame = false
+      this.myGameId = null
+      this.playerRole = ''
+      this.availableGames = []
+    },
+    
     handleKeyDown(e) {
       this.keys[e.key] = true
+      
+      if (!this.inGame) return
+      
+      // Send paddle movement
+      const direction = e.key === 'w' || e.key === 'ArrowUp' ? -1 : 
+                        e.key === 's' || e.key === 'ArrowDown' ? 1 : null
+      
+      if (direction && this.myGameId) {
+        this.socket.emit('pong-move', { 
+          gameId: this.myGameId, 
+          direction 
+        })
+      }
     },
+    
     handleKeyUp(e) {
       this.keys[e.key] = false
     },
-    update() {
-      // Paddle 1 movement (W/S)
-      if (this.keys['w'] || this.keys['W']) {
-        this.paddle1.y -= this.paddle1.speed
-      }
-      if (this.keys['s'] || this.keys['S']) {
-        this.paddle1.y += this.paddle1.speed
-      }
-      
-      // Paddle 2 movement (Arrow keys)
-      if (this.keys['ArrowUp']) {
-        this.paddle2.y -= this.paddle2.speed
-      }
-      if (this.keys['ArrowDown']) {
-        this.paddle2.y += this.paddle2.speed
-      }
-      
-      // Keep paddles within canvas
-      this.paddle1.y = Math.max(0, Math.min(this.canvas.height - this.paddle1.height, this.paddle1.y))
-      this.paddle2.y = Math.max(0, Math.min(this.canvas.height - this.paddle2.height, this.paddle2.y))
-      
-      // Ball movement
-      this.ball.x += this.ball.dx
-      this.ball.y += this.ball.dy
-      
-      // Ball collision with top/bottom walls
-      if (this.ball.y - this.ball.radius < 0 || this.ball.y + this.ball.radius > this.canvas.height) {
-        this.ball.dy = -this.ball.dy
-      }
-      
-      // Ball collision with paddle 1
-      if (
-        this.ball.x - this.ball.radius < this.paddle1.x + this.paddle1.width &&
-        this.ball.y > this.paddle1.y &&
-        this.ball.y < this.paddle1.y + this.paddle1.height &&
-        this.ball.dx < 0
-      ) {
-        this.ball.dx = -this.ball.dx
-        // Add slight angle change based on hit position
-        const hitPos = (this.ball.y - this.paddle1.y) / this.paddle1.height - 0.5
-        this.ball.dy = hitPos * 10
-      }
-      
-      // Ball collision with paddle 2
-      if (
-        this.ball.x + this.ball.radius > this.paddle2.x &&
-        this.ball.y > this.paddle2.y &&
-        this.ball.y < this.paddle2.y + this.paddle2.height &&
-        this.ball.dx > 0
-      ) {
-        this.ball.dx = -this.ball.dx
-        // Add slight angle change based on hit position
-        const hitPos = (this.ball.y - this.paddle2.y) / this.paddle2.height - 0.5
-        this.ball.dy = hitPos * 10
-      }
-      
-      // Score when ball goes out
-      if (this.ball.x < 0) {
-        this.score2++
-        this.resetBall()
-      }
-      if (this.ball.x > this.canvas.width) {
-        this.score1++
-        this.resetBall()
-      }
-    },
-    resetBall() {
-      this.ball.x = 400
-      this.ball.y = 200
-      this.ball.dx = (Math.random() > 0.5 ? 1 : -1) * this.ball.speed
-      this.ball.dy = (Math.random() * 2 - 1) * this.ball.speed
-    },
-    resetGame() {
-      this.score1 = 0
-      this.score2 = 0
-      this.paddle1.y = 150
-      this.paddle2.y = 150
-      this.resetBall()
-    },
+    
     draw() {
-      // Clear canvas
-      this.ctx.fillStyle = '#16213e'
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+      if (!this.ctx) return
       
-      // Draw center line
+      // Clear
+      this.ctx.fillStyle = '#16213e'
+      this.ctx.fillRect(0, 0, 800, 400)
+      
+      // Center line
       this.ctx.strokeStyle = '#444'
       this.ctx.setLineDash([10, 10])
       this.ctx.beginPath()
-      this.ctx.moveTo(this.canvas.width / 2, 0)
-      this.ctx.lineTo(this.canvas.width / 2, this.canvas.height)
+      this.ctx.moveTo(400, 0)
+      this.ctx.lineTo(400, 400)
       this.ctx.stroke()
       this.ctx.setLineDash([])
       
-      // Draw paddle 1
+      // Paddles
       this.ctx.fillStyle = '#e94560'
-      this.ctx.fillRect(this.paddle1.x, this.paddle1.y, this.paddle1.width, this.paddle1.height)
+      this.ctx.fillRect(20, this.gameState.paddle1Y, 15, 80)
       
-      // Draw paddle 2
       this.ctx.fillStyle = '#0f3460'
-      this.ctx.fillRect(this.paddle2.x, this.paddle2.y, this.paddle2.width, this.paddle2.height)
+      this.ctx.fillRect(765, this.gameState.paddle2Y, 15, 80)
       
-      // Draw ball
+      // Ball
       this.ctx.beginPath()
-      this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2)
+      this.ctx.arc(this.gameState.ballX, this.gameState.ballY, 10, 0, Math.PI * 2)
       this.ctx.fillStyle = '#fff'
       this.ctx.fill()
-      this.ctx.closePath()
     },
+    
     gameLoop() {
-      this.update()
       this.draw()
       this.animationId = requestAnimationFrame(this.gameLoop)
     }
@@ -201,8 +230,103 @@ export default {
 }
 
 h1 {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   color: #fff;
+}
+
+/* LOBBY */
+.lobby {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.lobby-section {
+  background: #16213e;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.lobby-section h2 {
+  color: #e94560;
+  margin-bottom: 15px;
+}
+
+.create-btn, .join-btn {
+  background: #e94560;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.join-btn {
+  background: #0f3460;
+  padding: 8px 16px;
+}
+
+.create-btn:hover, .join-btn:hover {
+  opacity: 0.9;
+}
+
+.no-games {
+  color: #888;
+  font-style: italic;
+}
+
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1a2e;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.my-game {
+  background: #0f3460;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* GAME */
+.game-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 800px;
+  margin-bottom: 10px;
+}
+
+.player-role {
+  color: #e94560;
+  font-weight: bold;
+}
+
+.leave-btn {
+  background: #ff6b6b;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .score {
@@ -228,31 +352,13 @@ canvas {
 }
 
 .controls {
-  display: flex;
-  gap: 40px;
   margin-top: 20px;
   padding: 15px 30px;
   background: #16213e;
   border-radius: 8px;
 }
 
-.control-group span {
-  color: #aaa;
-}
-
-.control-group strong {
-  color: #fff;
-}
-
-.reset-btn {
-  margin-top: 20px;
-  background: #e94560;
-  color: #fff;
-  font-size: 16px;
-  transition: background 0.3s;
-}
-
-.reset-btn:hover {
-  background: #ff6b6b;
+.controls strong {
+  color: #e94560;
 }
 </style>
