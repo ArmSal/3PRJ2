@@ -855,4 +855,11 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Wait for database init before starting server
+const startServer = async () => {
+  await initDatabase();
+  server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+};
+
+startServer();
