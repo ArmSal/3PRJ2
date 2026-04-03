@@ -29,7 +29,11 @@ export const useGameStore = defineStore('game', {
         return;
       }
 
-      this.socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
+      // Determine socket connection URL
+      // If VITE_API_URL is set, use it. Otherwise, use the current origin (Relative Proxy).
+      const socketUrl = import.meta.env.VITE_API_URL || '';
+      
+      this.socket = io(socketUrl, {
         auth: { token }
       })
 

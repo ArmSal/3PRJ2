@@ -11,19 +11,19 @@ const initDb = async (): Promise<void> => {
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
         avatar VARCHAR(255),
         count_elo INTEGER DEFAULT 1000,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Ensure password column exists (migration fix)
+    // Ensure password_hash column exists (migration fix)
     try {
-      await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255)`);
-      console.log('✅ Password column verified');
+      await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)`);
+      console.log('✅ password_hash column verified');
     } catch (e) {
-      console.log('ℹ️ Password column already exists');
+      console.log('ℹ️ password_hash column already exists');
     }
 
     // Guilds
