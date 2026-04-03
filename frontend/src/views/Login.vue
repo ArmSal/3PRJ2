@@ -37,7 +37,9 @@ export default {
           this.isLogin = true
         }
       } catch (e) {
-        alert(e.response?.data?.error || 'Error')
+        console.error('Login/Register error:', e)
+        const errorMsg = e.response?.data?.error || e.message || 'Network error - is backend running?'
+        alert('Error: ' + errorMsg)
       }
     }
   }
