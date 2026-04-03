@@ -1,6 +1,5 @@
 <template>
   <div class="pong-layout">
-    <!-- Header -->
     <div class="header">
       <div class="header-left">
         <button @click="goBack" class="btn-back">← Back</button>
@@ -18,11 +17,9 @@
       </div>
     </div>
 
-    <!-- Game Area -->
     <div class="game-container">
       <canvas ref="gameCanvas" class="game-canvas"></canvas>
       
-      <!-- Game Overlay -->
       <div v-if="!gameStarted" class="game-overlay">
         <div class="overlay-content">
           <h3>{{ isWaiting ? 'Waiting for opponent...' : 'Ready to play?' }}</h3>
@@ -37,7 +34,6 @@
         </div>
       </div>
 
-      <!-- Winner Overlay -->
       <div v-if="gameEnded" class="game-overlay winner">
         <div class="overlay-content">
           <h3>🎉 {{ winner }} Wins!</h3>
@@ -47,7 +43,6 @@
       </div>
     </div>
 
-    <!-- Controls -->
     <div class="controls">
       <div class="control-section">
         <h4>Controls</h4>
@@ -64,7 +59,7 @@
       </div>
       
       <div class="spectators" v-if="spectators.length > 0">
-        <h4>👀 Spectators ({{ spectators.length }})</h4>
+        <h4>Spectators ({{ spectators.length }})</h4>
         <div class="spectator-list">
           <span v-for="spec in spectators" :key="spec.id" class="spectator">
             {{ spec.username }}
@@ -92,42 +87,30 @@ export default {
       opponentScore: 0,
       winner: '',
       spectators: [],
-      
-      // Game objects
       canvas: null,
       ctx: null,
       ball: { x: 400, y: 250, dx: 5, dy: 5, radius: 10, speed: 5 },
       paddle1: { x: 20, y: 200, width: 15, height: 100, speed: 8 },
       paddle2: { x: 765, y: 200, width: 15, height: 100, speed: 8 },
-      
-      // Input
       keys: { w: false, s: false },
-      playerPaddle: 1, // 1 or 2
-      
-      // Animation
+      playerPaddle: 1,
       animationId: null
     }
   },
   mounted() {
     this.canvas = this.$refs.gameCanvas
     this.ctx = this.canvas.getContext('2d')
-    
-    // Set canvas size
     this.canvas.width = 800
     this.canvas.height = 500
     
-    // Connect socket
     this.socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
       auth: { token: localStorage.getItem('token') }
     })
     
     this.setupSocketListeners()
     this.setupKeyboardControls()
-    
-    // Initial draw
     this.draw()
     
-    // Check if joining existing game
     const joinId = this.$route.query.join
     if (joinId) {
       this.joinGame(joinId)
@@ -146,7 +129,6 @@ export default {
       this.socket.on('game:created', (data) => {
         this.isWaiting = true
         this.gameStatus = 'Waiting for opponent...'
-        console.log('Game created:', data.gameId)
       })
       
       this.socket.on('game:started', (data) => {
@@ -159,7 +141,6 @@ export default {
       })
       
       this.socket.on('game:state', (state) => {
-        // Update game state from server
         this.ball.x = state.ball.x
         this.ball.y = state.ball.y
         this.paddle1.y = state.paddle1.y
@@ -226,21 +207,16 @@ export default {
     startGameLoop() {
       const loop = () => {
         if (!this.gameStarted) return
-        
         this.update()
         this.draw()
-        
-        // Send paddle position to server
         const myPaddleY = this.playerPaddle === 1 ? this.paddle1.y : this.paddle2.y
         this.socket.emit('game:move', { paddleY: myPaddleY })
-        
         this.animationId = requestAnimationFrame(loop)
       }
       loop()
     },
     
     update() {
-      // Local paddle movement
       if (this.playerPaddle === 1) {
         if (this.keys.w && this.paddle1.y > 0) this.paddle1.y -= this.paddle1.speed
         if (this.keys.s && this.paddle1.y < this.canvas.height - this.paddle1.height) {
@@ -253,17 +229,13 @@ export default {
         }
       }
       
-      // Ball physics (only calculated on server in real implementation)
-      // This is client-side prediction for smooth gameplay
       this.ball.x += this.ball.dx
       this.ball.y += this.ball.dy
       
-      // Ball collision with top/bottom
       if (this.ball.y - this.ball.radius < 0 || this.ball.y + this.ball.radius > this.canvas.height) {
         this.ball.dy = -this.ball.dy
       }
       
-      // Ball collision with paddles
       this.checkPaddleCollision(this.paddle1)
       this.checkPaddleCollision(this.paddle2)
     },
@@ -274,18 +246,15 @@ export default {
           this.ball.y > paddle.y &&
           this.ball.y < paddle.y + paddle.height) {
         this.ball.dx = -this.ball.dx
-        // Add some angle based on where it hit the paddle
         const hitPoint = (this.ball.y - paddle.y) / paddle.height
         this.ball.dy = (hitPoint - 0.5) * 10
       }
     },
     
     draw() {
-      // Clear canvas
       this.ctx.fillStyle = '#2f3136'
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
       
-      // Draw center line
       this.ctx.strokeStyle = '#40444b'
       this.ctx.lineWidth = 2
       this.ctx.setLineDash([5, 15])
@@ -295,18 +264,15 @@ export default {
       this.ctx.stroke()
       this.ctx.setLineDash([])
       
-      // Draw paddles
       this.ctx.fillStyle = '#5865f2'
       this.ctx.fillRect(this.paddle1.x, this.paddle1.y, this.paddle1.width, this.paddle1.height)
       this.ctx.fillRect(this.paddle2.x, this.paddle2.y, this.paddle2.width, this.paddle2.height)
       
-      // Draw ball
       this.ctx.fillStyle = '#fff'
       this.ctx.beginPath()
       this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2)
       this.ctx.fill()
       
-      // Draw player indicators
       this.ctx.fillStyle = '#b9bbbe'
       this.ctx.font = '14px Arial'
       this.ctx.fillText('W/S to move', 20, this.canvas.height - 20)
@@ -394,7 +360,6 @@ export default {
   letter-spacing: 1px;
 }
 
-/* Game Container */
 .game-container {
   display: flex;
   justify-content: center;
@@ -409,7 +374,6 @@ export default {
   height: auto;
 }
 
-/* Game Overlay */
 .game-overlay {
   position: absolute;
   top: 50%;
@@ -477,7 +441,6 @@ export default {
   40% { transform: scale(1); }
 }
 
-/* Controls */
 .controls {
   max-width: 800px;
   margin: 0 auto;
@@ -532,7 +495,6 @@ export default {
   font-size: 14px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
