@@ -19,23 +19,31 @@ app.use(express.json());
 let pool;
 let isPostgres = false;
 
-if (process.env.DATABASE_URL) {
+// Try DATABASE_URL first, then individual env vars for Render PostgreSQL
+const dbUrl = process.env.DATABASE_URL || 
+  (process.env.DB_HOST && process.env.DB_USER && process.env.DB_PASSWORD && process.env.DB_NAME 
+    ? `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}?sslmode=require`
+    : null);
+
+if (dbUrl) {
   const { Pool } = require('pg');
   pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: dbUrl,
     ssl: { rejectUnauthorized: false }
   });
   isPostgres = true;
+  console.log('Using PostgreSQL database');
 } else {
   const mysql = require('mysql2/promise');
   pool = mysql.createPool({
-    host: process.env.DB_HOST || 'mysql',
+    host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'password',
     database: process.env.DB_NAME || 'gaming_platform',
     waitForConnections: true,
     connectionLimit: 10,
   });
+  console.log('Using MySQL database');
 }
 
 const query = async (sql, params) => {
