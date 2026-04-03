@@ -29,13 +29,22 @@ export class AuthController {
 
   static async login(req: Request, res: Response) {
     const { username, password } = req.body;
+    console.log('🔑 LOGIN ATTEMPT:', username);
 
     try {
       const result = await query('SELECT * FROM users WHERE username = $1', [username]);
       const user = result.rows[0];
+      console.log('👤 USER FOUND:', user ? 'YES' : 'NO');
 
-      if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.status(401).json({ error: 'AUTHENTICATION_FAILED: Invalid credentials.' });
+      if (!user) {
+        return res.status(401).json({ error: 'AUTHENTICATION_FAILED: User not found.' });
+      }
+
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      console.log('🔐 PASSWORD MATCH:', passwordMatch);
+
+      if (!passwordMatch) {
+        return res.status(401).json({ error: 'AUTHENTICATION_FAILED: Invalid password.' });
       }
 
       const token = jwt.sign(
@@ -45,6 +54,7 @@ export class AuthController {
       );
 
       delete user.password;
+      console.log('✅ LOGIN SUCCESS:', username);
       res.json({ user, token });
     } catch (err: any) {
       console.error('❌ LOGIN ERROR:', err);
