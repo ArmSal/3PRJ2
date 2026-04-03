@@ -89,9 +89,13 @@ const initSocket = () => {
 }
 
 const sendMessage = () => {
-  console.log('⚡ STARTING TRANSMISSION ATTEMPT...');
-  if (!newMessage.value.trim() || !chatStore.selectedChannel) {
-    console.warn('🛑 TRANSMISSION ABORTED: Empty message or no channel selected.', { msg: newMessage.value, channel: chatStore.selectedChannel });
+  if (!chatStore.selectedChannel) {
+    console.warn('🛑 TRANSMISSION ABORTED: No channel selected.');
+    return
+  }
+  
+  if (!newMessage.value.trim()) {
+    console.warn('🛑 TRANSMISSION ABORTED: Empty message.');
     return
   }
   
@@ -99,8 +103,8 @@ const sendMessage = () => {
     channelId: chatStore.selectedChannel.id,
     content: newMessage.value,
     userId: userStore.currentUserId as number,
-    username: userStore.user?.username || 'Unknown',
-    token: userStore.token // Critical fail-safe for server-side identity recovery
+    username: userStore.user?.username || 'Unknown Operator',
+    token: userStore.token
   }
   
   gameStore.socket?.emit('send-message', payload)
@@ -300,18 +304,25 @@ const toggleVoiceChannel = async () => {
 
               <!-- INPUT -->
               <div class="p-6 pt-0">
-                 <div class="flex items-center gap-3 bg-black/40 border border-white/5 p-3 rounded-2xl focus-within:border-primary/50 transition-all shadow-2xl">
-                    <button class="p-2 hover:bg-white/5 rounded-xl text-xl opacity-50 hover:opacity-100 transition-all">➕</button>
+                 <div 
+                   :class="cn(
+                     'flex items-center gap-3 bg-black/40 border p-3 rounded-2xl transition-all shadow-2xl',
+                     !chatStore.selectedChannel ? 'border-red-500/20 opacity-80' : 'border-white/5 focus-within:border-primary/50'
+                   )"
+                 >
+                    <button class="p-2 hover:bg-white/5 rounded-xl text-xl opacity-50 hover:opacity-100 transition-all" :disabled="!chatStore.selectedChannel">➕</button>
                     <input 
                       v-model="newMessage"
                       @keyup.enter="sendMessage"
                       type="text" 
-                      placeholder="Transmission Intel..." 
-                      class="flex-1 bg-transparent border-none outline-none text-sm font-bold placeholder:text-slate-700" 
+                      :placeholder="chatStore.selectedChannel ? 'Transmission Intel...' : '❌ Select a tactical channel to begin transmission...'" 
+                      class="flex-1 bg-transparent border-none outline-none text-sm font-bold placeholder:text-slate-700 disabled:cursor-not-allowed" 
+                      :disabled="!chatStore.selectedChannel"
                     />
                     <button 
                       @click="toggleVoiceChannel"
                       title="microphone"
+                      :disabled="!chatStore.selectedChannel"
                       :class="cn(
                         'p-2 rounded-xl text-xl transition-all active:scale-95',
                         voiceStore.isInVoice 
@@ -321,9 +332,16 @@ const toggleVoiceChannel = async () => {
                     >
                       {{ voiceStore.isInVoice ? '🎙️' : '🔇' }}
                     </button>
-                    <button @click="sendMessage" class="px-6 py-2 bg-primary hover:bg-primary/80 rounded-xl text-[10px] font-black italic tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-2">
+                    <button 
+                      @click="sendMessage" 
+                      :disabled="!chatStore.selectedChannel || !newMessage.trim()"
+                      class="px-6 py-2 bg-primary hover:bg-primary/80 disabled:bg-slate-800 disabled:text-slate-600 rounded-xl text-[10px] font-black italic tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-2"
+                    >
                        SEND <span>⚡</span>
                     </button>
+                 </div>
+                 <div v-if="chatStore.error" class="mt-2 text-[9px] text-red-500 font-black uppercase tracking-widest animate-pulse">
+                    ⚠️ SYSTEM_ERROR: {{ chatStore.error }}
                  </div>
               </div>
            </div>

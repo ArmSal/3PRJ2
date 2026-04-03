@@ -37,8 +37,11 @@ export const useChatStore = defineStore('chat', {
       try {
         const { data } = await axios.get<Guild[]>('/api/guilds')
         this.guilds = data
-        if (data.length && !this.selectedGuild) {
+        console.log(`📡 [SYSTEM] Neural networks retrieved: ${data.length} units.`);
+        
+        if (data.length > 0 && !this.selectedGuild) {
           this.selectedGuild = data[0]
+          console.log('✅ [SYSTEM] Defaulting to primary neural network:', this.selectedGuild.name);
           await this.fetchChannels(this.selectedGuild.id)
         }
       } catch (err: any) {
@@ -50,14 +53,23 @@ export const useChatStore = defineStore('chat', {
 
     async fetchChannels(guildId: number | string) {
       this.loading = true
+      console.log(`📡 [SYSTEM] Fetching tactical channels for guild: ${guildId}`);
       try {
         const { data } = await axios.get<any[]>(`/api/guilds/${guildId}/channels`)
         this.channels = data
-        if (data.length) {
-          this.selectedChannel = data[0]
-          await this.fetchMessages(this.selectedChannel.id)
+        if (data.length > 0) {
+          // Auto-select first channel only if none is currently selected or if switching guilds
+          if (!this.selectedChannel || this.selectedChannel.guild_id !== guildId) {
+            this.selectedChannel = data[0]
+            console.log('✅ [SYSTEM] Auto-selected channel:', this.selectedChannel.name);
+            await this.fetchMessages(this.selectedChannel.id)
+          }
+        } else {
+          this.selectedChannel = null;
+          console.warn('⚠️ [SYSTEM] Guild reported zero tactical channels.');
         }
       } catch (err: any) {
+        console.error('❌ [SYSTEM] Tactical channel sync failed:', err);
         this.error = 'Failed to load channels'
       } finally {
         this.loading = false
