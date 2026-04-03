@@ -40,46 +40,38 @@ const joinGame = (gameId: string) => {
 <template>
   <div class="h-full p-8 overflow-y-auto custom-scrollbar relative animate-in fade-in duration-700">
     <!-- Hero Highlight -->
-    <section class="h-[320px] rounded-[40px] mb-12 relative overflow-hidden group border border-white/5 shadow-2xl shadow-primary/10">
+    <section class="min-h-[220px] md:h-[320px] rounded-[32px] md:rounded-[40px] mb-8 md:mb-12 relative overflow-hidden group border border-white/5 shadow-2xl shadow-primary/10">
       <div class="absolute inset-0 bg-[#111420]/80 z-10"></div>
-      <!-- Background Visual -->
       <div class="absolute inset-0 bg-gradient-to-br from-primary/30 to-indigo-600/20 z-0"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.3),transparent)] z-0"></div>
       
-      <div class="absolute inset-0 z-20 p-12 flex items-center justify-between">
+      <div class="absolute inset-0 z-20 p-6 md:p-12 flex items-center justify-between">
          <div class="max-w-md">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest mb-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6">
                🔥 HIGH-INTENSITY ARENA
             </div>
-            <h2 class="text-6xl font-black italic tracking-tighter text-white mb-4 uppercase leading-[0.9]">
+            <h2 class="text-3xl md:text-6xl font-black italic tracking-tighter text-white mb-4 uppercase leading-[0.9]">
                Pong <br /> Championship
             </h2>
-            <p class="text-sm font-bold text-slate-400 uppercase tracking-wide leading-relaxed mb-8">
+            <p class="hidden md:block text-sm font-bold text-slate-400 uppercase tracking-wide leading-relaxed mb-8">
                Master the neural paddle. Neutralize your opponents in high-speed, zero-latency matches.
             </p>
-            <button @click="launchGame(1)" class="px-8 py-3.5 bg-primary hover:bg-primary/80 rounded-2xl text-[10px] font-black italic uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/30 flex items-center gap-2">
+            <button @click="launchGame(1)" class="px-6 md:px-8 py-3 md:py-3.5 bg-primary hover:bg-primary/80 rounded-2xl text-[9px] md:text-[10px] font-black italic uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/30 flex items-center gap-2">
                START COMBAT <span>⚡</span>
             </button>
-         </div>
-         
-         <div class="hidden lg:flex items-center gap-8 pr-12 group-hover:scale-105 transition-transform duration-700 opacity-60">
-            <div class="w-2 h-48 bg-slate-800 rounded-full"></div>
-            <div class="w-8 h-8 rounded-full bg-white/40 blur-sm animate-bounce"></div>
-            <div class="w-2 h-48 bg-slate-800 rounded-full"></div>
          </div>
       </div>
     </section>
 
     <!-- Filters -->
-    <div class="flex items-center justify-between mb-10">
-       <div class="flex items-center gap-3 bg-black/40 p-1.5 rounded-2xl border border-white/5">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-6">
+       <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 overflow-x-auto w-full md:w-auto custom-scrollbar">
           <button 
              v-for="cat in ['ALL_ARENAS', 'CASUAL', 'STRATEGY', 'LIVE']" 
              :key="cat"
              @click="activeTab = cat"
              :class="cn(
-               'px-6 py-2 rounded-xl text-[10px] font-black italic tracking-widest transition-all',
-               activeTab === cat ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
+               'px-4 md:px-6 py-2 rounded-xl text-[8px] md:text-[10px] font-black italic tracking-widest transition-all whitespace-nowrap',
+               activeTab === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-slate-300'
              )"
           >
              {{ cat }}
@@ -87,8 +79,8 @@ const joinGame = (gameId: string) => {
        </div>
        
        <div class="flex items-center gap-4 text-slate-600">
-          <span class="text-[9px] font-black uppercase tracking-[0.2em] italic">Network Latency: 12ms</span>
-          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+          <span class="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] italic">System Latency: 12ms</span>
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
        </div>
     </div>
 

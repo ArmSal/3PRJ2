@@ -114,10 +114,13 @@ const toggleVoiceChannel = async () => {
     
     <!-- DESKTOP GUILD SIDEBAR -->
     <aside class="hidden md:flex w-16 flex-shrink-0 bg-[#090b11] border-r border-white/5 flex-col items-center py-4 gap-4 z-50">
-      <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-2xl shadow-lg cursor-pointer transition-all">🎮</div>
-      <div v-for="guild in chatStore.guilds" :key="guild.id" @click="chatStore.selectedGuild = guild" class="w-12 h-12 rounded-3xl bg-slate-800 flex items-center justify-center font-black text-slate-400 cursor-pointer hover:rounded-2xl hover:bg-indigo-600 hover:text-white transition-all">
-        {{ guild.name.charAt(0).toUpperCase() }}
+      <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-2xl shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95" @click="router.push('/app')">
+        🏠
       </div>
+                <div v-for="guild in chatStore.guilds" :key="guild.id" @click="chatStore.selectedGuild = guild" class="w-12 h-12 rounded-3xl bg-slate-800 flex items-center justify-center font-black text-slate-400 cursor-pointer hover:rounded-2xl hover:bg-indigo-600 hover:text-white transition-all shadow-md group relative">
+                   <span class="z-10">{{ guild.name.charAt(0).toUpperCase() }}</span>
+                   <div v-if="chatStore.selectedGuild?.id === guild.id" class="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-8 bg-white rounded-r-full"></div>
+                </div>
     </aside>
 
     <main class="flex-1 flex flex-col min-w-0 h-full relative">
@@ -188,7 +191,7 @@ const toggleVoiceChannel = async () => {
                   <span class="text-[8px] text-emerald-500 font-bold uppercase">Online</span>
                 </div>
              </div>
-             <button class="p-1.5 hover:bg-white/10 rounded transition-all" @click="logout">🚪</button>
+             <button class="p-1.5 hover:bg-white/10 rounded transition-all text-red-500 hover:text-red-400 font-bold" @click="logout" title="Disconnect Neural Link">🔌</button>
           </div>
         </aside>
 
