@@ -10,42 +10,43 @@ services:
     networks:
       - app-network
 
-  backend:
-    build: ./backend
-    ports:
-      - "3004:3000"
+  db:
+    image: postgres:15-alpine
     environment:
-      - DB_HOST=mysql
-      - DB_USER=root
-      - DB_PASSWORD=password
-      - DB_NAME=gaming_platform
-      - JWT_SECRET=your-secret-key-change-this
-    depends_on:
-      mysql:
-        condition: service_healthy
-    networks:
-      - app-network
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=gaming_platform
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=gaming_platform
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+      - ./pg_init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "3307:3306"
+      - "5432:5432"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d gaming_platform"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
       - app-network
 
+  backend:
+    build: ./backend
+    ports:
+      - "3004:3000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_NAME=gaming_platform
+      - JWT_SECRET=your-secret-key-change-this
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
 volumes:
-  mysql_data:
+  postgres_data:
 
 networks:
   app-network:

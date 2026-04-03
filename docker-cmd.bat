@@ -31,9 +31,9 @@ if "%1"=="test" (
         echo [FAIL] Frontend not responding
     )
     
-    curl -s http://localhost:3000 > nul
+    curl -s http://localhost:3004 > nul
     if %errorlevel%==0 (
-        echo [OK] Backend running on http://localhost:3000
+        echo [OK] Backend running on http://localhost:3004
     ) else (
         echo [FAIL] Backend not responding
     )
@@ -53,7 +53,7 @@ if "%1"=="shell-be" (
 )
 
 if "%1"=="shell-db" (
-    docker-compose exec mysql mysql -u root -p
+    docker-compose exec db psql -U admin -d gaming_platform
     goto :end
 )
 
@@ -66,6 +66,6 @@ echo   logs      - View logs
 echo   test      - Test if services are running
 echo   clean     - Clean up containers and volumes
 echo   shell-be  - Open shell in backend container
-echo   shell-db  - Open MySQL shell
+echo   shell-db  - Open PostgreSQL shell
 
 :end

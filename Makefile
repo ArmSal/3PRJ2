@@ -36,13 +36,13 @@ shell-fe:
 
 # Database shell
 shell-db:
-	docker-compose exec mysql mysql -u root -p
+	docker-compose exec db psql -U admin -d gaming_platform
 
 # Test if services are running
 test:
 	@echo "Testing services..."
 	@curl -s http://localhost > /dev/null && echo "✓ Frontend OK" || echo "✗ Frontend failed"
-	@curl -s http://localhost:3000 > /dev/null && echo "✓ Backend OK" || echo "✗ Backend failed"
+	@curl -s http://localhost:3004 > /dev/null && echo "✓ Backend OK" || echo "✗ Backend failed"
 
 # Clean everything
 clean:
