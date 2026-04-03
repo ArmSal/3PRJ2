@@ -24,7 +24,7 @@
 
 ### 9h15 - 10h30 (1h15) : CORE BACKEND + AUTH
 
-#### BABIKIR (Backend) - Utilise Cursor/GPT
+#### BABIKIR (Backend) - **Windsurf Agent (Kimi 2.5)**
 **Tâches** :
 1. **0-20min** : Stabiliser login/register
    - Test POST `/api/register` sur prod
@@ -60,7 +60,7 @@
    
 **Commit** : `git commit -m "Backend: auth + socket.io chat core"`
 
-#### FEDI (Frontend) - Utilise Cursor/GPT
+#### FEDI (Frontend) - **Windsurf Agent (Kimi 2.5)**
 **Tâches** :
 1. **0-30min** : Login/Register pages fonctionnelles
    - Formulaire login connecté à `/api/login`
@@ -88,7 +88,7 @@
    
 **Commit** : `git commit -m "Frontend: auth pages + chat UI"`
 
-#### ABID (Games) - Utilise Cursor/GPT
+#### ABID (Games) - **Windsurf Agent (Kimi 2.5)**
 **Tâches** :
 1. **0-30min** : Canvas Pong basique
    ```javascript
@@ -139,7 +139,7 @@
 
 ### 10h45 - 12h00 (1h15) : INTÉGRATION CHAT + PONG
 
-#### BABIKIR (Backend) - Utilise Cursor/GPT
+#### BABIKIR (Backend) - **Windsurf Agent (Kimi 2.5)**
 **Tâches** :
 1. **0-30min** : Endpoints guildes
    - GET `/api/guilds` - Liste toutes les guildes
@@ -160,7 +160,7 @@
    
 **Commit** : `git commit -m "Backend: guilds API + game rooms socket.io"`
 
-#### FEDI (Frontend) - Utilise Cursor/GPT
+#### FEDI (Frontend) - **Windsurf Agent (Kimi 2.5)**
 **Tâches** :
 1. **0-45min** : Connecter Socket.io chat
    ```javascript
@@ -186,7 +186,7 @@
    
 **Commit** : `git commit -m "Frontend: socket.io integration + online users"`
 
-#### ABID (Games) - Utilise Cursor/GPT
+#### ABID (Games) - **Windsurf Agent (Kimi 2.5)**
 **Tâches** :
 1. **0-45min** : Connecter Socket.io au Pong
    ```javascript
