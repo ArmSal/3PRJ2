@@ -1,12 +1,12 @@
 <template>
-  <div class="trivia-container glass-card">
+  <div class="chess-container glass-card">
     <div class="header">
       <button @click="leaveGame" class="btn-back">⬅ Back</button>
-      <h2>Trivia Battle 🧠</h2>
+      <h2>Chess Blitz ♟️</h2>
     </div>
     
     <div v-if="!gameStarted && !isWaiting" class="lobby">
-      <h3>Ready to challenge others?</h3>
+      <h3>Ready to play chess?</h3>
       <button @click="createGame" class="btn-primary">Create New Game</button>
     </div>
 
@@ -14,35 +14,28 @@
       <h3>Waiting for opponent to join...</h3>
     </div>
 
-    <div v-else-if="!gameOver && currentQuestion" class="game-area">
+    <div v-else-if="!gameOver && board" class="game-area">
       <div class="score-panel">
-        <span class="score-player1">Score P1: {{ score1 }}</span>
-        <span>Question {{ currentQuestionIndex + 1 }} / {{ totalQuestions }}</span>
-        <span class="score-player2">Score P2: {{ score2 }}</span>
+        <span>Turn: {{ turn === 'w' ? 'White' : 'Black' }}</span>
       </div>
       
-      <div class="question-card glass-card">
-        <h3>{{ currentQuestion.question }}</h3>
-        
-        <div class="options-grid">
-          <button 
-            v-for="(option, index) in currentQuestion.options" 
-            :key="index"
-            class="option-btn"
-            :class="{ answered: p1Answered || p2Answered }"
-            :disabled="p1Answered"
-            @click="selectOption(index)"
+      <div class="chess-board">
+        <div v-for="(row, y) in board" :key="y" class="board-row">
+          <div 
+            v-for="(cell, x) in row" 
+            :key="x"
+            class="board-cell"
+            :class="{ 'black-cell': (x + y) % 2 === 1, 'selected': selected && selected.x === x && selected.y === y }"
+            @click="clickCell(x, y)"
           >
-            {{ option }}
-          </button>
+            <span class="piece" v-if="cell">{{ getPieceSymbol(cell) }}</span>
+          </div>
         </div>
       </div>
     </div>
 
     <div v-else-if="gameOver" class="game-over">
       <h2>Game Over!</h2>
-      <p>Final Scores:</p>
-      <p class="final-score">P1: {{ score1 }} | P2: {{ score2 }}</p>
       <h3>{{ winnerMessage }}</h3>
       <button @click="resetGame" class="btn-primary">Play Again</button>
     </div>
@@ -60,13 +53,9 @@ export default {
       gameStarted: false,
       isWaiting: false,
       gameOver: false,
-      score1: 0,
-      score2: 0,
-      currentQuestionIndex: 0,
-      totalQuestions: 0,
-      currentQuestion: null,
-      p1Answered: false,
-      p2Answered: false,
+      board: null,
+      turn: 'w',
+      selected: null,
       winner: null,
       userId: JSON.parse(atob(localStorage.getItem('token').split('.')[1])).id
     };
@@ -104,21 +93,15 @@ export default {
         this.myGameId = data.gameId;
       });
       
-      this.socket.on('trivia-state', (state) => {
-        this.currentQuestion = state.question;
-        this.score1 = state.score1;
-        this.score2 = state.score2;
-        this.currentQuestionIndex = state.currentQuestionIndex;
-        this.totalQuestions = state.totalQuestions;
-        this.p1Answered = state.p1Answered;
-        this.p2Answered = state.p2Answered;
+      this.socket.on('chess-state', (state) => {
+        this.board = state.board;
+        this.turn = state.turn;
+        this.gameOver = state.gameOver;
       });
       
       this.socket.on('game-ended', (data) => {
         this.gameOver = true;
         this.winner = data.winner;
-        this.score1 = data.score1;
-        this.score2 = data.score2;
       });
       
       this.socket.on('error', (data) => {
@@ -126,7 +109,7 @@ export default {
       });
     },
     createGame() {
-      this.socket.emit('create-game', { channelId: 1, gameType: 'trivia' });
+      this.socket.emit('create-game', { channelId: 1, gameType: 'chess' });
     },
     joinGame(gameId) {
       this.socket.emit('join-game', { gameId });
@@ -134,25 +117,41 @@ export default {
     leaveGame() {
       this.$router.push('/games');
     },
-    selectOption(index) {
-      this.p1Answered = true; // Optimistic locking
-      this.socket.emit('trivia-answer', {
-        gameId: this.myGameId,
-        answerIndex: index
-      });
+    clickCell(x, y) {
+      if (this.selected) {
+        if (this.selected.x !== x || this.selected.y !== y) {
+          this.socket.emit('chess-move', {
+            gameId: this.myGameId,
+            from: this.selected,
+            to: { x, y }
+          });
+        }
+        this.selected = null;
+      } else {
+        if (this.board[y][x]) {
+            this.selected = { x, y };
+        }
+      }
     },
     resetGame() {
       this.gameStarted = false;
       this.gameOver = false;
       this.isWaiting = false;
-      this.currentQuestion = null;
+      this.board = null;
+    },
+    getPieceSymbol(piece) {
+      const symbols = {
+        'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+        'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
+      };
+      return symbols[piece] || '';
     }
   }
 };
 </script>
 
 <style scoped>
-.trivia-container {
+.chess-container {
   max-width: 800px;
   margin: 40px auto;
   padding: 40px;
@@ -185,49 +184,58 @@ export default {
 
 .score-panel {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: 20px;
   font-weight: bold;
   font-size: 18px;
 }
 
-.question-card {
-  padding: 30px;
-  text-align: center;
-  background: rgba(20,20,30,0.6);
+.chess-board {
+  display: flex;
+  flex-direction: column;
+  border: 4px solid var(--border-glass);
+  width: 400px;
+  margin: 0 auto;
 }
 
-.options-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 24px;
+.board-row {
+  display: flex;
 }
 
-.option-btn {
-  padding: 16px;
-  background: rgba(0,0,0,0.3);
-  border: 2px solid var(--border-glass);
-  border-radius: 12px;
-  color: white;
+.board-cell {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0d9b5; /* Light square */
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 16px;
+  user-select: none;
 }
 
-.option-btn:hover:not(:disabled) {
-  border-color: var(--neon-blue);
-  background: rgba(0,212,255,0.1);
+.board-cell.black-cell {
+  background: #b58863; /* Dark square */
 }
 
-.option-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.board-cell.selected {
+  background: rgba(0, 255, 0, 0.5);
 }
 
-.final-score {
-  color: var(--neon-pink);
-  font-size: 32px;
+.piece {
+  font-size: 36px;
+  color: black;
+}
+
+.btn-primary {
+  padding: 12px 24px;
+  background-color: var(--neon-blue);
+  color: black;
+  border: none;
   font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.btn-primary:hover {
+  background-color: #00b0d0;
 }
 </style>

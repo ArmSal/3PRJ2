@@ -410,6 +410,175 @@ class SnakeGame {
   removeSpectator(socketId) { this.spectators.delete(socketId); }
 }
 
+// ============ TRIVIA GAME ENGINE ============
+class TriviaGame {
+  constructor(gameId, player1, player2, io) {
+    this.gameId = gameId;
+    this.player1 = player1;
+    this.player2 = player2;
+    this.io = io;
+    this.score1 = 0;
+    this.score2 = 0;
+    this.currentQuestionIndex = 0;
+    this.questions = triviaQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+    this.gameOver = false;
+    this.p1Answered = false;
+    this.p2Answered = false;
+    this.spectators = new Set();
+  }
+  start() {
+    this.broadcastState();
+  }
+  submitAnswer(player, answerIndex) {
+    if (this.gameOver) return;
+    const isP1 = player === this.player1;
+    if (isP1 && this.p1Answered) return;
+    if (!isP1 && this.p2Answered) return;
+    
+    if (isP1) this.p1Answered = true;
+    else this.p2Answered = true;
+    
+    if (answerIndex === this.questions[this.currentQuestionIndex].answer) {
+      if (isP1) this.score1 += 10;
+      else this.score2 += 10;
+    }
+    
+    if (this.p1Answered && this.p2Answered) {
+      this.currentQuestionIndex++;
+      this.p1Answered = false;
+      this.p2Answered = false;
+      if (this.currentQuestionIndex >= this.questions.length) {
+        this.endGame(this.score1 > this.score2 ? this.player1 : (this.score2 > this.score1 ? this.player2 : null));
+      } else {
+        this.broadcastState();
+      }
+    } else {
+       this.broadcastState();
+    }
+  }
+  broadcastState() {
+    if (this.gameOver) return;
+    const q = this.questions[this.currentQuestionIndex];
+    this.io.to(`game-${this.gameId}`).emit('trivia-state', {
+      question: { question: q.question, options: q.options },
+      score1: this.score1, score2: this.score2,
+      currentQuestionIndex: this.currentQuestionIndex,
+      totalQuestions: this.questions.length,
+      p1Answered: this.p1Answered,
+      p2Answered: this.p2Answered
+    });
+  }
+  async endGame(winnerId) {
+    this.gameOver = true;
+    await query('UPDATE games SET status = ?, winner_id = ?, score1 = ?, score2 = ?, ended_at = NOW() WHERE id = ?',
+      ['finished', winnerId, this.score1, this.score2, this.gameId]);
+    await this.updateStats(this.player1, this.score1 > this.score2);
+    if(this.player2) await this.updateStats(this.player2, this.score2 > this.score1);
+    this.io.to(`game-${this.gameId}`).emit('game-ended', { winner: winnerId, score1: this.score1, score2: this.score2 });
+  }
+  async updateStats(userId, won) {
+    const [existing] = await query('SELECT * FROM game_scores WHERE user_id = ? AND game_type = ?', [userId, 'trivia']);
+    if (existing[0]) {
+      await query('UPDATE game_scores SET score = score + ?, games_played = games_played + 1, games_won = games_won + ? WHERE user_id = ? AND game_type = ?',
+        [won ? 10 : 0, won ? 1 : 0, userId, 'trivia']);
+    } else {
+      await query('INSERT INTO game_scores (user_id, game_type, score, games_played, games_won) VALUES (?, ?, ?, 1, ?)',
+        [userId, 'trivia', won ? 10 : 0, won ? 1 : 0]);
+    }
+  }
+  addSpectator(socketId) { this.spectators.add(socketId); }
+  removeSpectator(socketId) { this.spectators.delete(socketId); }
+}
+
+// ============ CHESS GAME ENGINE ============
+class ChessGame {
+  constructor(gameId, player1, player2, io) {
+    this.gameId = gameId;
+    this.player1 = player1;
+    this.player2 = player2; // player 2 is black
+    this.io = io;
+    this.board = this.initialBoard();
+    this.turn = 'w';
+    this.score1 = 0;
+    this.score2 = 0;
+    this.gameOver = false;
+    this.spectators = new Set();
+  }
+  initialBoard() {
+    return [
+      ['r','n','b','q','k','b','n','r'],
+      ['p','p','p','p','p','p','p','p'],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['P','P','P','P','P','P','P','P'],
+      ['R','N','B','Q','K','B','N','R']
+    ];
+  }
+  start() {
+    this.broadcastState();
+  }
+  move(player, from, to) {
+    if (this.gameOver) return;
+    const isP1 = player === this.player1;
+    if (isP1 && this.turn !== 'w') return;
+    if (!isP1 && this.turn !== 'b') return;
+    
+    const piece = this.board[from.y][from.x];
+    if (!piece) return;
+    if (isP1 && piece === piece.toLowerCase()) return; // white can't move black
+    if (!isP1 && piece === piece.toUpperCase()) return; // black can't move white
+    
+    // check capture
+    const targetPiece = this.board[to.y][to.x];
+    if (targetPiece) {
+       if (targetPiece.toLowerCase() === 'k') {
+          this.board[to.y][to.x] = piece;
+          this.board[from.y][from.x] = '';
+          this.broadcastState();
+          this.endGame(player);
+          return;
+       }
+    }
+    
+    this.board[to.y][to.x] = piece;
+    this.board[from.y][from.x] = '';
+    this.turn = this.turn === 'w' ? 'b' : 'w';
+    this.broadcastState();
+  }
+  broadcastState() {
+    this.io.to(`game-${this.gameId}`).emit('chess-state', {
+      board: this.board, turn: this.turn,
+      gameOver: this.gameOver
+    });
+  }
+  async endGame(winnerId) {
+    this.gameOver = true;
+    const s1 = winnerId === this.player1 ? 1 : 0;
+    const s2 = winnerId === this.player2 ? 1 : 0;
+    this.score1 = s1;
+    this.score2 = s2;
+    await query('UPDATE games SET status = ?, winner_id = ?, score1 = ?, score2 = ?, ended_at = NOW() WHERE id = ?',
+      ['finished', winnerId, s1, s2, this.gameId]);
+    await this.updateStats(this.player1, s1 === 1);
+    await this.updateStats(this.player2, s2 === 1);
+    this.io.to(`game-${this.gameId}`).emit('game-ended', { winner: winnerId });
+  }
+  async updateStats(userId, won) {
+    const [existing] = await query('SELECT * FROM game_scores WHERE user_id = ? AND game_type = ?', [userId, 'chess']);
+    if (existing[0]) {
+      await query('UPDATE game_scores SET score = score + ?, games_played = games_played + 1, games_won = games_won + ? WHERE user_id = ? AND game_type = ?',
+        [won ? 10 : 0, won ? 1 : 0, userId, 'chess']);
+    } else {
+      await query('INSERT INTO game_scores (user_id, game_type, score, games_played, games_won) VALUES (?, ?, ?, 1, ?)',
+        [userId, 'chess', won ? 10 : 0, won ? 1 : 0]);
+    }
+  }
+  addSpectator(socketId) { this.spectators.add(socketId); }
+  removeSpectator(socketId) { this.spectators.delete(socketId); }
+}
+
 // ============ ACTIVE GAMES MANAGER ============
 const activeGames = new Map();
 
@@ -762,6 +931,14 @@ io.on('connection', (socket) => {
       const snakeGame = new SnakeGame(gameId, game.player1_id, socket.userId, io);
       activeGames.set(gameId, snakeGame);
       snakeGame.start();
+    } else if (game.game_type === 'trivia') {
+      const triviaGame = new TriviaGame(gameId, game.player1_id, socket.userId, io);
+      activeGames.set(gameId, triviaGame);
+      triviaGame.start();
+    } else if (game.game_type === 'chess') {
+      const chessGame = new ChessGame(gameId, game.player1_id, socket.userId, io);
+      activeGames.set(gameId, chessGame);
+      chessGame.start();
     }
     io.to(`game-${gameId}`).emit('game-started', { gameId, gameType: game.game_type, player1: game.player1_id, player2: socket.userId });
   });
@@ -803,23 +980,16 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Trivia
-  let triviaSessions = new Map();
-  socket.on('start-trivia', async (data) => {
-    const { gameId } = data;
-    const shuffled = triviaQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
-    triviaSessions.set(gameId, { questions: shuffled, scores: {} });
-    io.to(`game-${gameId}`).emit('trivia-start', { questions: shuffled });
+  socket.on('trivia-answer', (data) => {
+    const { gameId, answerIndex } = data;
+    const game = activeGames.get(parseInt(gameId));
+    if (game && game instanceof TriviaGame) game.submitAnswer(socket.userId, answerIndex);
   });
 
-  socket.on('trivia-answer', (data) => {
-    const { gameId, questionIndex, answer, userId } = data;
-    const session = triviaSessions.get(gameId);
-    if (!session) return;
-    const correct = session.questions[questionIndex].answer === answer;
-    if (!session.scores[userId]) session.scores[userId] = 0;
-    if (correct) session.scores[userId] += 10;
-    io.to(`game-${gameId}`).emit('trivia-result', { userId, questionIndex, correct, scores: session.scores });
+  socket.on('chess-move', (data) => {
+    const { gameId, from, to } = data;
+    const game = activeGames.get(parseInt(gameId));
+    if (game && game instanceof ChessGame) game.move(socket.userId, from, to);
   });
 
   socket.on('game-invite', (data) => {

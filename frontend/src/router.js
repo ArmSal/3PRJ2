@@ -8,6 +8,7 @@ import Snake from './views/Snake.vue'
 import Spectator from './views/Spectator.vue'
 import Trivia from './views/Trivia.vue'
 import Tournaments from './views/Tournaments.vue'
+import Chess from './views/Chess.vue'
 
 const routes = [
   { path: '/', component: Landing },
@@ -18,6 +19,7 @@ const routes = [
   { path: '/pong', component: Pong },
   { path: '/snake', component: Snake, meta: { requiresAuth: true } },
   { path: '/trivia', component: Trivia, meta: { requiresAuth: true } },
+  { path: '/chess', component: Chess, meta: { requiresAuth: true } },
   { path: '/tournaments', component: Tournaments, meta: { requiresAuth: true } },
   { path: '/spectate/:id', component: Spectator, meta: { requiresAuth: true } },
 ]

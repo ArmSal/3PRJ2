@@ -125,14 +125,14 @@
             <div class="active-game-actions">
               <button 
                 v-if="game.status === 'waiting' && !game.isFull"
-                @click="joinGame(game.id)"
+                @click="joinGame(game)"
                 class="btn-join-game"
               >
                 Join
               </button>
               <button 
                 v-else
-                @click="spectateGame(game.id)"
+                @click="spectateGame(game)"
                 class="btn-spectate"
               >
                 👁 Watch
@@ -218,8 +218,8 @@ export default {
           description: 'Fast-paced chess matches',
           icon: '♟️',
           players: 12,
-          status: 'beta',
-          statusText: 'Beta'
+          status: 'active',
+          statusText: 'Live'
         }
       ],
       activeGames: [
@@ -272,15 +272,19 @@ export default {
       if (game.id === 1) this.playPong()
       if (game.id === 2) this.$router.push('/snake')
       if (game.id === 3) this.$router.push('/trivia')
+      if (game.id === 4) this.$router.push('/chess')
     },
     playPong() {
       this.$router.push('/games/pong')
     },
-    joinGame(gameId) {
-      this.$router.push(`/games/pong?join=${gameId}`)
+    joinGame(game) {
+      if(game.game_type === 'pong') this.$router.push(`/games/pong?join=${game.id}`)
+      if(game.game_type === 'snake') this.$router.push(`/snake?join=${game.id}`)
+      if(game.game_type === 'trivia') this.$router.push(`/trivia?join=${game.id}`)
+      if(game.game_type === 'chess') this.$router.push(`/chess?join=${game.id}`)
     },
-    spectateGame(gameId) {
-      this.$router.push(`/spectate/${gameId}`)
+    spectateGame(game) {
+      this.$router.push(`/spectate/${game.id}`)
     },
     refreshGames() {
       this.loadGamesData()
