@@ -100,7 +100,7 @@ export class PongService {
       this.endGame(gameId, io);
     }
 
-    io.to(`game-${gameId}`).emit('pong-state', {
+    io.to(gameId).emit('pong-state', {
       ball: state.ball,
       paddle1: { y: state.paddle1Y, height: this.PADDLE_HEIGHT, width: this.PADDLE_WIDTH },
       paddle2: { y: state.paddle2Y, height: this.PADDLE_HEIGHT, width: this.PADDLE_WIDTH },
@@ -126,7 +126,7 @@ export class PongService {
     try {
       // Update Leaderboards
       await query('UPDATE leaderboards SET score = score + 10 WHERE user_id = $1 AND game_type = $2', [winnerId, 'pong']);
-      io.to(`game-${gameId}`).emit('game-ended', { winner: winnerId });
+      io.to(gameId).emit('game-ended', { winner: winnerId });
     } catch (err) {
       console.error('Failed to persist game results:', err);
     }
