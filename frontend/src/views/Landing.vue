@@ -1,331 +1,94 @@
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const stats = [
+  { label: 'Active Units', value: '1,420+' },
+  { label: 'Neural Matches', value: '12.8K' },
+  { label: 'Lobby Latency', value: '14ms' },
+]
+</script>
+
 <template>
-  <div class="landing-page">
-    <div class="particles">
-      <div class="particle" v-for="n in 30" :key="n" :style="getParticleStyle(n)"></div>
-    </div>
+  <div class="min-h-screen bg-[#020617] text-slate-200 overflow-hidden font-sans relative">
+    <!-- Matrix/Grid Overlay -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
     
-    <nav class="navbar glass-nav">
-      <div class="nav-brand">
-        <span class="logo-icon">🎮</span>
-        <span class="logo-text neon-text">Discord-Gaming Plus</span>
+    <!-- Hero Glow -->
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse"></div>
+
+    <!-- Navigation -->
+    <nav class="h-20 flex items-center justify-between px-10 relative z-20 border-b border-white/5 backdrop-blur-md">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🎮</span>
+        <h1 class="text-xl font-black italic tracking-tighter uppercase">Gaming Plus</h1>
       </div>
-      <div class="nav-links">
-        <button class="btn-outline" @click="$router.push('/login')">Log In</button>
-        <button class="btn-primary" @click="$router.push('/login')">Sign Up</button>
+      <div class="hidden md:flex items-center gap-10">
+        <a v-for="link in ['Network', 'Arenas', 'Bounties', 'Docs']" :key="link" href="#" class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all">
+          {{ link }}
+        </a>
       </div>
+      <button @click="router.push('/login')" class="bg-primary/10 border border-primary/20 text-primary px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-lg shadow-primary/10 active:scale-95">
+        Terminal Access
+      </button>
     </nav>
 
-    <main class="hero-section">
-      <div class="hero-content text-center">
-        <h1 class="hero-title">
-          The Ultimate <span class="highlight">Social Gaming</span> Experience
-        </h1>
-        <p class="hero-subtitle">
-          Connect with friends across campuses. Play integrated browser games. Compete in tournaments. Talk in real-time with WebRTC voice.
-        </p>
-        <div class="cta-group">
-          <button class="btn-huge btn-primary glow-effect" @click="$router.push('/login')">
-            Launch App
-          </button>
-          <a href="#features" class="btn-learn-more">Explore Features</a>
+    <!-- Main Content -->
+    <main class="relative z-10 pt-32 pb-20 px-10 flex flex-col items-center">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-10 group cursor-default">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-primary transition-colors">Neural Network Online</span>
+      </div>
+
+      <!-- Hero Title -->
+      <h2 class="text-5xl md:text-8xl font-black italic tracking-tighter text-center mb-8 max-w-5xl leading-[0.9] uppercase bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">
+        The Future Of <br /> Cybernetic Combat
+      </h2>
+
+      <!-- Subtitle -->
+      <p class="text-slate-500 font-bold uppercase tracking-[0.4em] text-xs text-center max-w-2xl mb-14 leading-relaxed">
+        High-fidelity social chat integrated with distributed neural game engines. <br /> Zero latency. Infinite competition.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row items-center gap-6 mb-20">
+        <button @click="router.push('/login')" class="w-64 h-16 bg-primary text-white rounded-2xl font-black italic uppercase tracking-widest text-sm shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group">
+          START ENGAGEMENT
+          <span class="group-hover:translate-x-1 transition-transform">⚡</span>
+        </button>
+        <button class="w-64 h-16 bg-white/5 border border-white/10 text-slate-300 rounded-2xl font-black italic uppercase tracking-widest text-sm hover:bg-white/10 transition-all active:scale-95">
+          REVIEW INTEL
+        </button>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl p-8 rounded-[40px] bg-black/40 border border-white/5 backdrop-blur-xl mb-32">
+        <div v-for="stat in stats" :key="stat.label" class="flex flex-col items-center gap-1 group">
+           <span class="text-4xl font-black italic text-white group-hover:text-primary transition-colors">{{ stat.value }}</span>
+           <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600">{{ stat.label }}</span>
         </div>
       </div>
-      
-      <div class="hero-visual">
-        <div class="app-mockup glass-card glow-blue">
-          <div class="mockup-sidebar"></div>
-          <div class="mockup-content">
-            <div class="mockup-header"></div>
-            <div class="mockup-messages">
-              <div class="m-msg m-left"></div>
-              <div class="m-msg m-right"></div>
-              <div class="m-msg m-left"></div>
-            </div>
-          </div>
-          <div class="mockup-game">
-            <div class="m-game-box"></div>
-          </div>
+
+      <!-- Footer Info -->
+      <div class="text-center">
+        <p class="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em] mb-4">Secured by GGP Multi-Core Protocol</p>
+        <div class="flex gap-4 justify-center opacity-20 grayscale hover:opacity-100 transition-all duration-700">
+           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg" class="w-6 h-6" />
+           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" class="w-6 h-6" />
+           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" class="w-6 h-6" />
+           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" class="w-6 h-6" />
         </div>
       </div>
     </main>
-
-    <section id="features" class="features-section">
-      <div class="feature-grid">
-        <div class="feature-card glass-card">
-          <div class="icon">🎙️</div>
-          <h3>Real-time Communication</h3>
-          <p>Crystal clear voice chat using WebRTC and instant text messaging via Socket.io.</p>
-        </div>
-        <div class="feature-card glass-card">
-          <div class="icon">🕹️</div>
-          <h3>Integrated Mini-Games</h3>
-          <p>Challenge friends instantly to classic games like Pong, Snake, and Trivia directly inside the chat.</p>
-        </div>
-        <div class="feature-card glass-card">
-          <div class="icon">🏆</div>
-          <h3>Inter-Campus Tournaments</h3>
-          <p>Participate in official multi-campus competitions. Represent your school, win big.</p>
-        </div>
-        <div class="feature-card glass-card">
-          <div class="icon">👁️</div>
-          <h3>Spectator Mode</h3>
-          <p>Don't want to play? Hop in and watch your friends' critical matches live.</p>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <p>© 2026 École IT Hackathon - B3PRJ2 Cloud-Native Social App</p>
-    </footer>
   </div>
 </template>
 
-<script>
-export default {
-  methods: {
-    getParticleStyle(n) {
-      return {
-        left: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 15}s`,
-        animationDuration: `${10 + Math.random() * 15}s`,
-        opacity: Math.random() * 0.5 + 0.2,
-        width: `${Math.random() * 6 + 2}px`,
-        height: `${Math.random() * 6 + 2}px`,
-      }
-    }
-  }
-}
-</script>
-
 <style scoped>
-.landing-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow-x: hidden;
-  color: #fff;
-}
-
-.glass-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 5%;
-  background: rgba(10, 10, 15, 0.7);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.logo-text {
-  background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.nav-links {
-  display: flex;
-  gap: 16px;
-}
-
-.btn-outline {
-  padding: 10px 24px;
-  border: 2px solid rgba(255,255,255,0.2);
-  background: transparent;
-  color: #fff;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.3s;
-}
-
-.btn-outline:hover {
-  border-color: var(--neon-blue);
-  box-shadow: 0 0 15px rgba(0,212,255,0.2);
-}
-
-.btn-primary {
-  padding: 10px 24px;
-}
-
-.hero-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 80px 5%;
-  flex: 1;
-}
-
-.hero-content {
-  max-width: 800px;
-  margin-bottom: 60px;
-}
-
-.hero-title {
-  font-size: 64px;
-  line-height: 1.1;
-  font-weight: 800;
-  margin-bottom: 24px;
-}
-
-.highlight {
-  color: var(--neon-green);
-  text-shadow: 0 0 20px rgba(0,255,136,0.4);
-}
-
-.hero-subtitle {
-  font-size: 20px;
-  color: var(--text-secondary);
-  margin-bottom: 40px;
-  line-height: 1.6;
-}
-
-.cta-group {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-}
-
-.btn-huge {
-  font-size: 20px;
-  padding: 18px 40px;
-  border-radius: 16px;
-}
-
-.glow-effect {
-  box-shadow: 0 0 30px rgba(255,0,110,0.4);
-}
-
-.btn-learn-more {
-  color: #fff;
-  font-weight: 600;
-  text-decoration: none;
-  font-size: 18px;
-  border-bottom: 2px solid transparent;
-  transition: 0.3s;
-}
-.btn-learn-more:hover {
-  border-color: var(--neon-blue);
-  color: var(--neon-blue);
-}
-
-.hero-visual {
-  width: 100%;
-  max-width: 1000px;
-  perspective: 1000px;
-}
-
-.app-mockup {
-  display: flex;
-  height: 500px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(10,10,15,0.8);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 80px rgba(0,212,255,0.1);
-  transform: rotateX(5deg) scale(0.95);
-  transition: transform 0.5s;
-  overflow: hidden;
-}
-.app-mockup:hover {
-  transform: rotateX(0) scale(1);
-}
-
-.mockup-sidebar {
-  width: 80px;
-  background: rgba(0,0,0,0.5);
-  border-right: 1px solid rgba(255,255,255,0.1);
-}
-.mockup-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.mockup-header {
-  height: 60px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-.mockup-messages {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.m-msg { height: 40px; border-radius: 8px; }
-.m-left { width: 60%; background: rgba(255,255,255,0.1); }
-.m-right { width: 40%; background: rgba(88,101,242,0.3); align-self: flex-end; }
-.mockup-game {
-  width: 300px;
-  border-left: 1px solid rgba(255,255,255,0.1);
-  background: rgba(20,20,30,0.8);
-  padding: 20px;
-}
-.m-game-box {
-  width: 100%;
-  height: 150px;
-  background: rgba(255,0,110,0.2);
-  border-radius: 12px;
-}
-
-.features-section {
-  padding: 80px 5%;
-  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.5));
-}
-
-.feature-grid {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 30px;
-}
-
-.feature-card {
-  padding: 40px 30px;
-  text-align: center;
-  transition: 0.3s;
-}
-.feature-card:hover {
-  transform: translateY(-10px);
-  border-color: var(--neon-blue);
-}
-
-.icon {
-  font-size: 48px;
-  margin-bottom: 20px;
-}
-.feature-card h3 {
-  font-size: 22px;
-  margin-bottom: 16px;
-  font-weight: 700;
-}
-.feature-card p {
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.footer {
-  text-align: center;
-  padding: 30px;
-  color: var(--text-secondary);
-  border-top: 1px solid rgba(255,255,255,0.1);
-  margin-top: auto;
-}
-
-@media (max-width: 768px) {
-  .hero-title { font-size: 40px; }
-  .app-mockup { flex-direction: column; height: 600px; }
-  .mockup-game { width: 100%; border-left: none; border-top: 1px solid rgba(255,255,255,0.1); height: 200px; }
+/* Custom animations for the professional board look */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.4; }
 }
 </style>

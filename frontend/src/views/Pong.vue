@@ -1,532 +1,274 @@
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { useGameStore } from '@/stores/game'
+import { useUserStore } from '@/stores/user'
+import { cn } from '@/lib/utils'
+
+const gameStore = useGameStore()
+const userStore = useUserStore()
+
+const pongCanvas = ref<HTMLCanvasElement | null>(null)
+const ctx = ref<CanvasRenderingContext2D | null>(null)
+const animationId = ref<number | null>(null)
+
+const inGame = ref(false)
+const loading = ref(false)
+const myGameId = ref<string | null>(null)
+const playerRole = ref<'Player 1' | 'Player 2' | ''>('')
+const score1 = ref(0)
+const score2 = ref(0)
+
+const gameState = ref({
+  ball: { x: 400, y: 200, radius: 8 },
+  paddle1: { y: 150, height: 100, width: 10 },
+  paddle2: { y: 150, height: 100, width: 10 },
+  score1: 0,
+  score2: 0,
+  gameOver: false
+})
+
+onMounted(() => {
+  initGame()
+  window.addEventListener('keydown', handleKeyDown)
+  gameLoop()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  if (animationId.value) cancelAnimationFrame(animationId.value)
+})
+
+const initGame = () => {
+  gameStore.initSocket(userStore.token)
+  const socket = gameStore.socket
+  if (!socket) return
+
+  socket.on('game-created', (data: { gameId: string }) => {
+    myGameId.value = data.gameId
+    loading.value = false
+  })
+
+  socket.on('game-started', (data: { gameId: string, player1: number }) => {
+    inGame.value = true
+    myGameId.value = data.gameId
+    
+    nextTick(() => {
+      if (pongCanvas.value) {
+        ctx.value = pongCanvas.value.getContext('2d')
+      }
+    })
+
+    playerRole.value = data.player1 === userStore.currentUserId ? 'Player 1' : 'Player 2'
+  })
+
+  socket.on('pong-state', (state: any) => {
+    gameState.value = state
+    score1.value = state.score1 || 0
+    score2.value = state.score2 || 0
+  })
+
+  socket.on('game-ended', () => {
+    gameState.value.gameOver = true
+  })
+}
+
+const createGame = () => {
+  loading.value = true
+  gameStore.socket?.emit('create-game', { channelId: 1, gameType: 'pong' })
+}
+
+const joinGame = (gameId: string) => {
+  gameStore.socket?.emit('join-game', { gameId })
+}
+
+const leaveGame = () => {
+  inGame.value = false
+  myGameId.value = null
+  playerRole.value = ''
+  gameState.value.gameOver = false
+}
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (!inGame.value || gameState.value.gameOver) return
+  
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+    movePaddle('up')
+  } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+    movePaddle('down')
+  }
+}
+
+const movePaddle = (dir: 'up' | 'down') => {
+  if (myGameId.value) {
+    gameStore.socket?.emit('pong-move', { 
+      gameId: myGameId.value, 
+      direction: dir 
+    })
+  }
+}
+
+const draw = () => {
+  if (!ctx.value || !pongCanvas.value || !inGame.value) return
+  
+  const width = 800
+  const height = 400
+
+  // Background
+  ctx.value.fillStyle = '#090b11'
+  ctx.value.fillRect(0, 0, width, height)
+  
+  // Center scanline
+  ctx.value.strokeStyle = '#1e293b'
+  ctx.value.lineWidth = 2
+  ctx.value.setLineDash([10, 15])
+  ctx.value.beginPath(); ctx.value.moveTo(width / 2, 0); ctx.value.lineTo(width / 2, height); ctx.value.stroke()
+  ctx.value.setLineDash([])
+  
+  // Neon Ball
+  const pulse = Math.sin(Date.now() / 150) * 2
+  ctx.value.fillStyle = '#ffffff'
+  ctx.value.shadowBlur = 15 + pulse
+  ctx.value.shadowColor = '#ffffff'
+  ctx.value.beginPath()
+  ctx.value.arc(gameState.value.ball.x, gameState.value.ball.y, gameState.value.ball.radius + pulse, 0, Math.PI * 2)
+  ctx.value.fill()
+  ctx.value.shadowBlur = 0
+  
+  // Neural Paddles
+  drawPaddle(0, gameState.value.paddle1.y, '#10b981') // Emerald Player (Left)
+  drawPaddle(width - 10, gameState.value.paddle2.y, '#3b82f6') // Azure Player (Right)
+}
+
+const drawPaddle = (x: number, y: number, color: string) => {
+  if (!ctx.value) return
+  ctx.value.fillStyle = color
+  ctx.value.shadowBlur = 20
+  ctx.value.shadowColor = color
+  ctx.value.fillRect(x + 2, y, 6, 100)
+  ctx.value.shadowBlur = 0
+}
+
+const gameLoop = () => {
+  draw()
+  animationId.value = requestAnimationFrame(gameLoop)
+}
+</script>
+
 <template>
-  <div class="pong-layout">
-    <div class="header">
-      <div class="header-left">
-        <button @click="goBack" class="btn-back">← Back</button>
-        <h2>🏓 Pong</h2>
-      </div>
-      <div class="game-info">
-        <div class="score">
-          <span class="player">{{ playerName }}</span>
-          <span class="score-number">{{ playerScore }}</span>
-          <span class="separator">-</span>
-          <span class="score-number">{{ opponentScore }}</span>
-          <span class="player">{{ opponentName }}</span>
-        </div>
-        <div class="status">{{ gameStatus }}</div>
-      </div>
+  <div class="h-full w-full p-10 flex flex-col items-center overflow-y-auto custom-scrollbar relative animate-in zoom-in-95 duration-500 selection:bg-primary/20">
+    
+    <!-- HEADER HUD -->
+    <div class="w-full max-w-4xl flex justify-between items-end mb-12">
+       <div class="flex flex-col">
+          <div class="flex items-center gap-3 mb-2">
+             <div :class="cn('w-2 h-2 rounded-full animate-ping', inGame ? 'bg-emerald-500' : 'bg-amber-500')"></div>
+             <span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic">
+               {{ inGame ? 'Tactical Engagement' : 'Standing By' }}
+             </span>
+          </div>
+          <h2 class="text-4xl font-black italic tracking-tighter text-white uppercase leading-none">Pong Combat</h2>
+       </div>
+
+       <div v-if="inGame" class="flex items-center gap-10 glass-blur px-10 py-4 rounded-2xl border border-white/5 shadow-2xl">
+          <div class="flex flex-col items-center">
+             <span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-1">Link_Left</span>
+             <span class="text-3xl font-black italic text-white">{{ score1 }}</span>
+          </div>
+          <div class="text-slate-700 font-bold italic text-2xl">VS</div>
+          <div class="flex flex-col items-center">
+             <span class="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-1">Link_Right</span>
+             <span class="text-3xl font-black italic text-white">{{ score2 }}</span>
+          </div>
+       </div>
     </div>
-
-    <div class="game-container">
-      <canvas ref="gameCanvas" class="game-canvas"></canvas>
-      
-      <div v-if="!gameStarted" class="game-overlay">
-        <div class="overlay-content">
-          <h3>{{ isWaiting ? 'Waiting for opponent...' : 'Ready to play?' }}</h3>
-          <p v-if="isWaiting">Share this game or wait for someone to join</p>
-          <p v-else>Click start to begin the match</p>
-          <button v-if="!isWaiting" @click="startGame" class="btn-start">Start Game</button>
-          <div v-else class="waiting-animation">
-            <span class="dot">.</span>
-            <span class="dot">.</span>
-            <span class="dot">.</span>
-          </div>
+    
+    <!-- LOBBY / PRE-GAME -->
+    <div v-if="!inGame" class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="glass-blur p-8 rounded-[32px] border border-white/5 flex flex-col justify-between group overflow-hidden relative">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+        
+        <div>
+          <h3 class="text-xl font-black italic uppercase tracking-tighter text-white mb-4">Initialize Combat Channel</h3>
+          <p class="text-xs font-bold text-slate-500 leading-relaxed uppercase tracking-wide">
+            Protocol: Establish a point-to-point neural paddle link. Standard physics simulation at 120Hz refresh rate.
+          </p>
         </div>
-      </div>
-
-      <div v-if="gameEnded" class="game-overlay winner">
-        <div class="overlay-content">
-          <h3>🎉 {{ winner }} Wins!</h3>
-          <p>Final score: {{ playerScore }} - {{ opponentScore }}</p>
-          <button @click="restartGame" class="btn-start">Play Again</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="controls">
-      <div class="control-section">
-        <h4>Controls</h4>
-        <div class="keys">
-          <div class="key-group">
-            <span class="key">W</span>
-            <span>Move Up</span>
-          </div>
-          <div class="key-group">
-            <span class="key">S</span>
-            <span>Move Down</span>
-          </div>
-        </div>
+        <button @click="createGame" :disabled="loading" class="mt-10 px-8 py-4 bg-primary text-white rounded-2xl font-black italic uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50">
+          {{ loading ? 'INITIALIZING...' : 'OPEN CHANNEL ⚡' }}
+        </button>
       </div>
       
-      <div class="spectators" v-if="spectators.length > 0">
-        <h4>Spectators ({{ spectators.length }})</h4>
-        <div class="spectator-list">
-          <span v-for="spec in spectators" :key="spec.id" class="spectator">
-            {{ spec.username }}
-          </span>
+      <div class="glass-blur p-8 rounded-[32px] border border-white/5">
+        <h3 class="text-xl font-black italic uppercase tracking-tighter text-white mb-6">Active Signals</h3>
+        <div v-if="gameStore.availableGames.filter(g => g.gameType === 'pong').length === 0" class="py-12 flex flex-col items-center text-slate-700">
+           <span class="text-4xl mb-4 grayscale opacity-30">📡</span>
+           <span class="text-[10px] font-black uppercase tracking-[0.2em]">Searching for active frequencies...</span>
+        </div>
+        <div v-else class="space-y-4">
+          <div v-for="game in gameStore.availableGames.filter(g => g.gameType === 'pong')" :key="game.gameId" class="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-primary/30 transition-all group">
+             <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-black italic border border-indigo-500/20">
+                   {{ game.player1.charAt(0) }}
+                </div>
+                <div class="flex flex-col">
+                   <span class="text-xs font-black italic text-white uppercase">{{ game.player1 }}</span>
+                   <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-none">Ready to Engage</span>
+                </div>
+             </div>
+             <button @click="joinGame(game.gameId)" class="px-5 py-2 bg-slate-800 text-[9px] font-black italic uppercase tracking-widest rounded-xl hover:bg-emerald-600 active:scale-95 transition-all">
+                ENGAGE
+             </button>
+          </div>
         </div>
       </div>
+    </div>
+    
+    <!-- GAME ARENA -->
+    <div v-else class="relative group animate-in zoom-in-95 duration-700">
+       <div class="relative bg-[#090b11] rounded-[32px] overflow-hidden border-4 border-slate-900 shadow-[0_0_50px_rgba(30,41,59,0.3)]">
+          <canvas ref="pongCanvas" width="800" height="400"></canvas>
+          
+          <!-- GAMEOVER OVERLAY -->
+          <div v-if="gameState.gameOver" class="absolute inset-0 bg-[#090b11]/90 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-500">
+             <div class="text-center mb-8">
+                <h3 class="text-5xl font-black italic tracking-tighter text-red-500 uppercase leading-[0.8] mb-4">Neural <br /> Termination</h3>
+                <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em]">Combat Log Offline</p>
+             </div>
+             <button @click="leaveGame" class="px-10 py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black italic uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all shadow-2xl">
+                RETURN TO NEXUS
+             </button>
+          </div>
+       </div>
+
+       <!-- CONTROLS FOOTER -->
+       <div class="mt-12 flex justify-between items-center w-full max-w-4xl px-8">
+          <div class="flex items-center gap-8 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-700">
+             <div class="flex flex-col items-center gap-1">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black border-b-4 border-black mb-1">W</div>
+                <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black border-b-4 border-black">S</div>
+             </div>
+             <div class="flex flex-col">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Vertical Axis Protocol</span>
+                <span class="text-[8px] font-bold text-slate-600 uppercase tracking-tighter">Maintain Neural Defenses</span>
+             </div>
+          </div>
+
+          <div class="flex flex-col items-end">
+             <span class="text-[10px] font-black italic text-primary uppercase mb-1">Operator Profile</span>
+             <div class="flex items-center gap-3">
+                <span class="text-xs font-black italic text-white uppercase">{{ userStore.user?.username }}</span>
+                <div :class="cn('w-2 h-2 rounded-full', playerRole === 'Player 1' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-blue-500 shadow-[0_0_8px_#3b82f6]')"></div>
+             </div>
+          </div>
+       </div>
     </div>
   </div>
 </template>
 
-<script>
-import { io } from 'socket.io-client'
-
-export default {
-  data() {
-    return {
-      socket: null,
-      gameStarted: false,
-      gameEnded: false,
-      isWaiting: false,
-      gameStatus: 'Waiting...',
-      playerName: 'You',
-      opponentName: 'Opponent',
-      playerScore: 0,
-      opponentScore: 0,
-      winner: '',
-      spectators: [],
-      canvas: null,
-      ctx: null,
-      ball: { x: 400, y: 250, dx: 5, dy: 5, radius: 10, speed: 5 },
-      paddle1: { x: 20, y: 200, width: 15, height: 100, speed: 8 },
-      paddle2: { x: 765, y: 200, width: 15, height: 100, speed: 8 },
-      keys: { w: false, s: false },
-      playerPaddle: 1,
-      animationId: null
-    }
-  },
-  mounted() {
-    this.canvas = this.$refs.gameCanvas
-    this.ctx = this.canvas.getContext('2d')
-    this.canvas.width = 800
-    this.canvas.height = 500
-    
-    this.socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
-      auth: { token: localStorage.getItem('token') }
-    })
-    
-    this.setupSocketListeners()
-    this.setupKeyboardControls()
-    this.draw()
-    
-    const joinId = this.$route.query.join
-    if (joinId) {
-      this.joinGame(joinId)
-    } else {
-      this.createGame()
-    }
-  },
-  beforeUnmount() {
-    if (this.animationId) cancelAnimationFrame(this.animationId)
-    if (this.socket) this.socket.disconnect()
-    window.removeEventListener('keydown', this.keyDown)
-    window.removeEventListener('keyup', this.keyUp)
-  },
-  methods: {
-    setupSocketListeners() {
-      this.socket.on('game:created', (data) => {
-        this.isWaiting = true
-        this.gameStatus = 'Waiting for opponent...'
-      })
-      
-      this.socket.on('game:started', (data) => {
-        this.gameStarted = true
-        this.isWaiting = false
-        this.gameStatus = 'Game in progress!'
-        this.playerPaddle = data.playerPaddle
-        this.opponentName = data.opponentName || 'Opponent'
-        this.startGameLoop()
-      })
-      
-      this.socket.on('game:state', (state) => {
-        this.ball.x = state.ball.x
-        this.ball.y = state.ball.y
-        this.paddle1.y = state.paddle1.y
-        this.paddle2.y = state.paddle2.y
-        this.playerScore = state.score1
-        this.opponentScore = state.score2
-      })
-      
-      this.socket.on('game:ended', (data) => {
-        this.gameEnded = true
-        this.gameStarted = false
-        this.winner = data.winner
-        this.gameStatus = 'Game Over'
-      })
-      
-      this.socket.on('spectators:update', (spectators) => {
-        this.spectators = spectators
-      })
-      
-      this.socket.on('opponent:disconnected', () => {
-        this.gameStatus = 'Opponent disconnected'
-        this.isWaiting = true
-      })
-    },
-    
-    setupKeyboardControls() {
-      this.keyDown = (e) => {
-        if (e.key === 'w' || e.key === 'W') this.keys.w = true
-        if (e.key === 's' || e.key === 'S') this.keys.s = true
-      }
-      
-      this.keyUp = (e) => {
-        if (e.key === 'w' || e.key === 'W') this.keys.w = false
-        if (e.key === 's' || e.key === 'S') this.keys.s = false
-      }
-      
-      window.addEventListener('keydown', this.keyDown)
-      window.addEventListener('keyup', this.keyUp)
-    },
-    
-    createGame() {
-      this.socket.emit('game:create', { type: 'pong' })
-    },
-    
-    joinGame(gameId) {
-      this.socket.emit('game:join', { gameId })
-    },
-    
-    startGame() {
-      this.socket.emit('game:ready')
-    },
-    
-    restartGame() {
-      this.gameEnded = false
-      this.playerScore = 0
-      this.opponentScore = 0
-      this.createGame()
-    },
-    
-    goBack() {
-      this.$router.push('/games')
-    },
-    
-    startGameLoop() {
-      const loop = () => {
-        if (!this.gameStarted) return
-        this.update()
-        this.draw()
-        const myPaddleY = this.playerPaddle === 1 ? this.paddle1.y : this.paddle2.y
-        this.socket.emit('game:move', { paddleY: myPaddleY })
-        this.animationId = requestAnimationFrame(loop)
-      }
-      loop()
-    },
-    
-    update() {
-      if (this.playerPaddle === 1) {
-        if (this.keys.w && this.paddle1.y > 0) this.paddle1.y -= this.paddle1.speed
-        if (this.keys.s && this.paddle1.y < this.canvas.height - this.paddle1.height) {
-          this.paddle1.y += this.paddle1.speed
-        }
-      } else {
-        if (this.keys.w && this.paddle2.y > 0) this.paddle2.y -= this.paddle2.speed
-        if (this.keys.s && this.paddle2.y < this.canvas.height - this.paddle2.height) {
-          this.paddle2.y += this.paddle2.speed
-        }
-      }
-      
-      this.ball.x += this.ball.dx
-      this.ball.y += this.ball.dy
-      
-      if (this.ball.y - this.ball.radius < 0 || this.ball.y + this.ball.radius > this.canvas.height) {
-        this.ball.dy = -this.ball.dy
-      }
-      
-      this.checkPaddleCollision(this.paddle1)
-      this.checkPaddleCollision(this.paddle2)
-    },
-    
-    checkPaddleCollision(paddle) {
-      if (this.ball.x - this.ball.radius < paddle.x + paddle.width &&
-          this.ball.x + this.ball.radius > paddle.x &&
-          this.ball.y > paddle.y &&
-          this.ball.y < paddle.y + paddle.height) {
-        this.ball.dx = -this.ball.dx
-        const hitPoint = (this.ball.y - paddle.y) / paddle.height
-        this.ball.dy = (hitPoint - 0.5) * 10
-      }
-    },
-    
-    draw() {
-      this.ctx.fillStyle = '#2f3136'
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
-      
-      this.ctx.strokeStyle = '#40444b'
-      this.ctx.lineWidth = 2
-      this.ctx.setLineDash([5, 15])
-      this.ctx.beginPath()
-      this.ctx.moveTo(this.canvas.width / 2, 0)
-      this.ctx.lineTo(this.canvas.width / 2, this.canvas.height)
-      this.ctx.stroke()
-      this.ctx.setLineDash([])
-      
-      this.ctx.fillStyle = '#5865f2'
-      this.ctx.fillRect(this.paddle1.x, this.paddle1.y, this.paddle1.width, this.paddle1.height)
-      this.ctx.fillRect(this.paddle2.x, this.paddle2.y, this.paddle2.width, this.paddle2.height)
-      
-      this.ctx.fillStyle = '#fff'
-      this.ctx.beginPath()
-      this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2)
-      this.ctx.fill()
-      
-      this.ctx.fillStyle = '#b9bbbe'
-      this.ctx.font = '14px Arial'
-      this.ctx.fillText('W/S to move', 20, this.canvas.height - 20)
-    }
-  }
-}
-</script>
-
 <style scoped>
-.pong-layout {
-  min-height: 100vh;
-  background: #36393f;
-  font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  background: #2f3136;
-  border-bottom: 1px solid #202225;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.header-left h2 {
-  color: #fff;
-  margin: 0;
-  font-size: 24px;
-}
-
-.btn-back {
-  padding: 8px 16px;
-  background: #40444b;
-  color: #b9bbbe;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.btn-back:hover {
-  background: #4752c4;
-  color: #fff;
-}
-
-.game-info {
-  text-align: center;
-}
-
-.score {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 4px;
-}
-
-.score .player {
-  color: #b9bbbe;
-  font-size: 14px;
-  min-width: 80px;
-}
-
-.score-number {
-  color: #fff;
-  font-size: 32px;
-  font-weight: bold;
-  min-width: 40px;
-}
-
-.separator {
-  color: #72767d;
-  font-size: 24px;
-}
-
-.status {
-  color: #3ba55d;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.game-container {
-  display: flex;
-  justify-content: center;
-  padding: 24px;
-  position: relative;
-}
-
-.game-canvas {
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  max-width: 100%;
-  height: auto;
-}
-
-.game-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(47, 49, 54, 0.95);
-  border-radius: 16px;
-  padding: 40px 60px;
-  text-align: center;
-  border: 1px solid #40444b;
-}
-
-.game-overlay.winner {
-  background: rgba(59, 165, 93, 0.95);
-  border-color: #3ba55d;
-}
-
-.overlay-content h3 {
-  color: #fff;
-  margin: 0 0 16px 0;
-  font-size: 28px;
-}
-
-.overlay-content p {
-  color: #b9bbbe;
-  margin: 0 0 24px 0;
-  font-size: 16px;
-}
-
-.btn-start {
-  padding: 16px 32px;
-  background: #5865f2;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.btn-start:hover {
-  background: #4752c4;
-  transform: scale(1.05);
-}
-
-.waiting-animation {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.dot {
-  color: #fff;
-  font-size: 32px;
-  animation: bounce 1.4s infinite ease-in-out both;
-}
-
-.dot:nth-child(1) { animation-delay: -0.32s; }
-.dot:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
-}
-
-.controls {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.control-section h4,
-.spectators h4 {
-  color: #fff;
-  margin: 0 0 16px 0;
-  font-size: 16px;
-}
-
-.keys {
-  display: flex;
-  gap: 24px;
-}
-
-.key-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #b9bbbe;
-  font-size: 14px;
-}
-
-.key {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #40444b;
-  border-radius: 4px;
-  color: #fff;
-  font-weight: 600;
-  font-size: 14px;
-  border: 1px solid #202225;
-}
-
-.spectator-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.spectator {
-  padding: 4px 12px;
-  background: #40444b;
-  border-radius: 12px;
-  color: #b9bbbe;
-  font-size: 14px;
-}
-
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-  }
-  
-  .game-info {
-    order: -1;
-  }
-  
-  .score-number {
-    font-size: 24px;
-  }
-  
-  .game-canvas {
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  .game-overlay {
-    padding: 24px 32px;
-    width: 90%;
-  }
-  
-  .overlay-content h3 {
-    font-size: 20px;
-  }
-  
-  .controls {
-    grid-template-columns: 1fr;
-    padding: 16px;
-  }
+canvas {
+  width: 800px;
+  height: 400px;
+  image-rendering: auto;
 }
 </style>

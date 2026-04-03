@@ -10,12 +10,18 @@ interface UserState {
 }
 
 export const useUserStore = defineStore('user', {
-  state: (): UserState => ({
-    user: JSON.parse(localStorage.getItem('user') || 'null'),
-    token: localStorage.getItem('token'),
-    loading: false,
-    error: null
-  }),
+  state: (): UserState => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    return {
+      user: JSON.parse(localStorage.getItem('user') || 'null'),
+      token,
+      loading: false,
+      error: null
+    };
+  },
 
   getters: {
     isAuthenticated: (state) => !!state.token,

@@ -42,7 +42,7 @@ shell-db:
 test:
 	@echo "Testing services..."
 	@curl -s http://localhost > /dev/null && echo "✓ Frontend OK" || echo "✗ Frontend failed"
-	@curl -s http://localhost:3004 > /dev/null && echo "✓ Backend OK" || echo "✗ Backend failed"
+	@curl -s http://localhost:3000 > /dev/null && echo "✓ Backend OK" || echo "✗ Backend failed"
 
 # Clean everything
 clean:
@@ -52,3 +52,7 @@ clean:
 # Development mode (with logs)
 dev:
 	docker-compose up --build
+
+# Run PowerShell local script
+local:
+	powershell -ExecutionPolicy Bypass -File run_local.ps1

@@ -13,15 +13,23 @@ import Chess from './views/Chess.vue'
 const routes = [
   { path: '/', component: Landing },
   { path: '/login', component: Login },
-  { path: '/chat', component: Chat, meta: { requiresAuth: true } },
-  { path: '/games', component: Games, meta: { requiresAuth: true } },
-  { path: '/games/pong', component: Pong, meta: { requiresAuth: true } },
-  { path: '/pong', component: Pong },
-  { path: '/snake', component: Snake, meta: { requiresAuth: true } },
-  { path: '/trivia', component: Trivia, meta: { requiresAuth: true } },
-  { path: '/chess', component: Chess, meta: { requiresAuth: true } },
-  { path: '/tournaments', component: Tournaments, meta: { requiresAuth: true } },
-  { path: '/spectate/:id', component: Spectator, meta: { requiresAuth: true } },
+  { path: '/chat', redirect: '/app' },
+  { path: '/games', redirect: '/app/games' },
+  { 
+    path: '/app', 
+    component: Chat, 
+    meta: { requiresAuth: true },
+    children: [
+      { path: 'games', component: Games },
+      { path: 'games/pong', component: Pong },
+      { path: 'pong', component: Pong },
+      { path: 'snake', component: Snake },
+      { path: 'trivia', component: Trivia },
+      { path: 'chess', component: Chess },
+      { path: 'tournaments', component: Tournaments },
+      { path: 'spectate/:id', component: Spectator },
+    ]
+  }
 ]
 
 const router = createRouter({

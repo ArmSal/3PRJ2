@@ -1,22 +1,29 @@
+# GAMING PLUS: ULTRA-STABLE NEXUS INITIALIZER
+# ==========================================
+
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "  Starting Gaming+ Hackathon Project" -ForegroundColor Green
+Write-Host "  GAMING PLUS: NEURAL NETWORK INITIALIZER" -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Cyan
 
-Write-Host "`nStopping any existing containers and cleaning up..." -ForegroundColor Yellow
-docker-compose down
+# 1. Nexus Grid Cleanup (Crucial to reset volumes for user role sync)
+Write-Host "`n[1/3] Purging Grid Volumes (Resetting role protocols)..." -ForegroundColor Yellow
+docker-compose down -v --remove-orphans
 
-Write-Host "`nBuilding and starting containers (Frontend, Backend, PostgreSQL)..." -ForegroundColor Yellow
-docker-compose up --build -d
+# 2. Neural Compilation & Grid Sync
+Write-Host "`n[2/3] Compiling Neural Logic & Syncing Grid (Force Rebuild)..." -ForegroundColor Yellow
+docker-compose build --no-cache
+docker-compose up -d
 
-Write-Host "`nWaiting for services to spin up..." -ForegroundColor Yellow
-Start-Sleep -Seconds 10
+# 3. Nexus Protocol Verification
+Write-Host "`n[3/3] Authenticating Nexus Protocols..." -ForegroundColor Yellow
+Start-Sleep -Seconds 10 # Waiting for Postgres Nexus to stabilize
 
 Write-Host "`n==========================================" -ForegroundColor Cyan
-Write-Host "Services are up and running!" -ForegroundColor Green
+Write-Host "   NEURAL NETWORK IS NOW OPERATIONAL" -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "🎮 Frontend UI :  http://localhost" -ForegroundColor White
-Write-Host "⚙️  Backend API :  http://localhost:3004" -ForegroundColor White
+Write-Host "🎮 UI INTERFACE :  http://localhost" -ForegroundColor White
+Write-Host "🧠 NEXUS CORE   :  http://localhost:3000" -ForegroundColor White
 Write-Host ""
-Write-Host "To view real-time logs, run: docker-compose logs -f" -ForegroundColor DarkGray
-Write-Host "To stop the project, run:   docker-compose down" -ForegroundColor DarkGray
+Write-Host "Monitoring: docker-compose logs -f" -ForegroundColor DarkGray
+Write-Host "Shutdown  : docker-compose down" -ForegroundColor DarkGray

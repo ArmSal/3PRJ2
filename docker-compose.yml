@@ -1,53 +1,77 @@
-version: '3.8'
+# GAMING PLUS: NEXUS INFRASTRUCTURE ORCHESTRATOR
+# ==========================================
 
 services:
+  # ==========================================
+  # NEURAL INTERFACE (FRONTEND)
+  # ==========================================
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gp_frontend_nexus
     ports:
       - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:3000
     depends_on:
       - backend
+    restart: unless-stopped
     networks:
-      - app-network
+      - gaming_neural_net
 
-  db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=gaming_platform
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./pg_init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d gaming_platform"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app-network
-
+  # ==========================================
+  # NEXUS CORE (BACKEND)
+  # ==========================================
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gp_backend_nexus
     ports:
-      - "3004:3000"
+      - "3000:3000"
     environment:
+      - PORT=3000
+      - NODE_ENV=production
       - DB_HOST=db
-      - DB_USER=admin
+      - DB_USER=postgres
       - DB_PASSWORD=password
       - DB_NAME=gaming_platform
-      - JWT_SECRET=your-secret-key-change-this
+      - DB_PORT=5432
+      - JWT_SECRET=hackathon-jury-key-2024
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
     networks:
-      - app-network
+      - gaming_neural_net
+
+  # ==========================================
+  # PERSISTENCE GRID (DATABASE)
+  # ==========================================
+  db:
+    image: postgres:15-alpine
+    container_name: gp_db_nexus
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=gaming_platform
+    volumes:
+      - pg_neural_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gaming_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - gaming_neural_net
 
 volumes:
-  postgres_data:
+  pg_neural_data:
 
 networks:
-  app-network:
+  gaming_neural_net:
     driver: bridge
