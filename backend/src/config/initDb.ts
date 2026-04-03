@@ -5,7 +5,7 @@ const initDb = async (): Promise<void> => {
   try {
     console.log('🔄 INITIALIZING NEURAL DATABASE PROTOCOLS...');
 
-    // Users
+    // Users table
     await query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -17,6 +17,14 @@ const initDb = async (): Promise<void> => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Ensure password column exists (migration fix)
+    try {
+      await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255)`);
+      console.log('✅ Password column verified');
+    } catch (e) {
+      console.log('ℹ️ Password column already exists');
+    }
 
     // Guilds
     await query(`
