@@ -26,10 +26,10 @@
 
 | Role | Name | Discord/Phone | GitHub Username |
 |------|------|---------------|-----------------|
-| DevOps | Armend SALIHU | | |
-| Backend | Babikir IBRAHIM AL KHALIL | | |
-| Frontend | Fedi Khaldi | | |
-| Full-Stack | Abid RAKHIS AHMAT | | |
+| DevOps | Armend SALIHU | | [@ArmSal](https://github.com/ArmSal) |
+| Backend | Babikir IBRAHIM AL KHALIL | | [@babs235](https://github.com/babs235) |
+| Frontend | Fedi Khaldi | | [@fedi005](https://github.com/fedi005) |
+| Full-Stack | Abid RAKHIS AHMAT | | [@abidrakhis6-cloud](https://github.com/abidrakhis6-cloud) |
 
 ## Meeting Schedule
 
