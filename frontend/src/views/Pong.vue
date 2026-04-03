@@ -104,6 +104,12 @@ export default {
       keys: { w: false, s: false },
       playerPaddle: 1, // 1 or 2
       
+      // Interpolation for smooth network sync
+      targetBall: { x: 400, y: 250 },
+      targetPaddle1: { y: 200 },
+      targetPaddle2: { y: 200 },
+      interpolationFactor: 0.3,
+      
       // Animation
       animationId: null
     }
@@ -159,11 +165,11 @@ export default {
       })
       
       this.socket.on('game:state', (state) => {
-        // Update game state from server
-        this.ball.x = state.ball.x
-        this.ball.y = state.ball.y
-        this.paddle1.y = state.paddle1.y
-        this.paddle2.y = state.paddle2.y
+        // Store target positions for interpolation (smooth network sync)
+        this.targetBall.x = state.ball.x
+        this.targetBall.y = state.ball.y
+        this.targetPaddle1.y = state.paddle1.y
+        this.targetPaddle2.y = state.paddle2.y
         this.playerScore = state.score1
         this.opponentScore = state.score2
       })
@@ -253,6 +259,9 @@ export default {
         }
       }
       
+      // Interpolate towards target positions (smooth network sync)
+      this.interpolateGameObjects()
+      
       // Ball physics (only calculated on server in real implementation)
       // This is client-side prediction for smooth gameplay
       this.ball.x += this.ball.dx
@@ -310,115 +319,13 @@ export default {
       this.ctx.fillStyle = '#b9bbbe'
       this.ctx.font = '14px Arial'
       this.ctx.fillText('W/S to move', 20, this.canvas.height - 20)
->>>>>>> ffac17d9a68243c31599178b01b4878b082c9953
     }
   }
 }
 </script>
 
 <style scoped>
-<<<<<<< HEAD
-.pong-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  min-height: 100vh;
-}
-
-h1 {
-  margin-bottom: 20px;
-  color: #fff;
-}
-
-/* LOBBY */
-.lobby {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  width: 100%;
-  max-width: 500px;
-}
-
-.lobby-section {
-  background: #16213e;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.lobby-section h2 {
-  color: #e94560;
-  margin-bottom: 15px;
-}
-
-.create-btn, .join-btn {
-  background: #e94560;
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.join-btn {
-  background: #0f3460;
-  padding: 8px 16px;
-}
-
-.create-btn:hover, .join-btn:hover {
-  opacity: 0.9;
-}
-
-.no-games {
-  color: #888;
-  font-style: italic;
-}
-
-.games-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.game-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #1a1a2e;
-  padding: 12px;
-  border-radius: 4px;
-}
-
-.my-game {
-  background: #0f3460;
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-}
-
-/* GAME */
-.game-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.game-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 800px;
-  margin-bottom: 10px;
-}
-
-.player-role {
-  color: #e94560;
-  font-weight: bold;
-}
-
-.leave-btn {
-  background: #ff6b6b;
+.pong-layout {
   min-height: 100vh;
   background: #36393f;
   font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -497,7 +404,10 @@ canvas {
 
 .controls strong {
   color: #e94560;
-=======
+}
+
+.score {
+  display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 4px;
@@ -700,6 +610,5 @@ canvas {
     grid-template-columns: 1fr;
     padding: 16px;
   }
->>>>>>> ffac17d9a68243c31599178b01b4878b082c9953
 }
 </style>
