@@ -15,8 +15,19 @@ export const useUserStore = defineStore('user', {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
+    // Safe parse user from localStorage
+    let user: User | null = null;
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData && userData !== 'undefined') {
+        user = JSON.parse(userData);
+      }
+    } catch (e) {
+      console.warn('Failed to parse user from localStorage:', e);
+      localStorage.removeItem('user');
+    }
     return {
-      user: JSON.parse(localStorage.getItem('user') || 'null'),
+      user,
       token,
       loading: false,
       error: null
