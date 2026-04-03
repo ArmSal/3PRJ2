@@ -47,7 +47,11 @@ export class AuthController {
       delete user.password;
       res.json({ user, token });
     } catch (err: any) {
-      res.status(500).json({ error: 'SYSTEM_FAILURE: Could not verify identity.' });
+      console.error('❌ LOGIN ERROR:', err);
+      res.status(500).json({ 
+        error: 'SYSTEM_FAILURE: Could not verify identity.',
+        detail: err.message 
+      });
     }
   }
 }
