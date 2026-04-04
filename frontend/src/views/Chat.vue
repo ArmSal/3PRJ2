@@ -6,7 +6,7 @@ import { useChatStore } from '@/stores/chat'
 import { useGameStore } from '@/stores/game'
 import { useVoiceStore } from '@/stores/voice'
 import { cn } from '@/lib/utils'
-import type { Message, User, Guild } from '@/types'
+import type { Message, User } from '@/types'
 
 const router = useRouter()
 const route = useRoute()
@@ -26,6 +26,7 @@ const activeTab = computed(() => {
   if (path.includes('/games') || path.includes('/pong') || path.includes('/snake') || path.includes('/trivia')) return 'games'
   if (path.includes('/tournaments')) return 'tournaments'
   if (path.includes('/settings')) return 'settings'
+  if (path.includes('/leaderboard')) return 'leaderboard'
   return 'chat'
 })
 
@@ -92,7 +93,7 @@ const scrollToBottom = () => {
 }
 
 const navigateTo = (tab: string) => {
-  const routes: Record<string, string> = { 'chat': '/app', 'games': '/app/games', 'tournaments': '/app/tournaments', 'settings': '/app/settings' }
+  const routes: Record<string, string> = { 'chat': '/app', 'games': '/app/games', 'tournaments': '/app/tournaments', 'settings': '/app/settings', 'leaderboard': '/app/leaderboard' }
   router.push(routes[tab])
 }
 
@@ -135,8 +136,8 @@ const toggleVoiceChannel = async () => {
             <h2 class="text-sm font-black tracking-tight uppercase italic">{{ chatStore.selectedChannel?.name || 'general' }}</h2>
           </div>
           <nav class="hidden md:flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/5 ml-4">
-            <button v-for="tab in ['chat', 'games', 'tournaments', 'settings']" :key="tab" @click="navigateTo(tab)" :class="cn('px-4 py-1.5 rounded-lg text-[10px] font-black uppercase italic transition-all', activeTab === tab ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300')">
-              {{ tab === 'settings' ? '⚙️' : tab }}
+            <button v-for="tab in ['chat', 'games', 'tournaments', 'leaderboard', 'settings']" :key="tab" @click="navigateTo(tab)" :class="cn('px-4 py-1.5 rounded-lg text-[10px] font-black uppercase italic transition-all', activeTab === tab ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300')">
+              {{ tab === 'settings' ? '⚙️' : (tab === 'leaderboard' ? '🏆' : tab) }}
             </button>
           </nav>
         </div>
@@ -162,8 +163,8 @@ const toggleVoiceChannel = async () => {
           <aside class="w-60 bg-[#0b0d14] flex flex-col p-4 shadow-2xl">
              <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Tactical Operations</h3>
              <nav class="flex flex-col gap-2 mb-8">
-                <button v-for="tab in ['chat', 'games', 'tournaments', 'settings']" :key="tab" @click="navigateTo(tab); isSidebarOpen = false" :class="cn('flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black italic uppercase transition-all', activeTab === tab ? 'bg-primary text-white shadow-lg' : 'text-slate-500 bg-white/5')">
-                   {{ tab === 'settings' ? '⚙️ settings' : tab }}
+                <button v-for="tab in ['chat', 'games', 'tournaments', 'leaderboard', 'settings']" :key="tab" @click="navigateTo(tab); isSidebarOpen = false" :class="cn('flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black italic uppercase transition-all', activeTab === tab ? 'bg-primary text-white shadow-lg' : 'text-slate-500 bg-white/5')">
+                   {{ tab === 'settings' ? '⚙️ settings' : (tab === 'leaderboard' ? '🏆 rankings' : tab) }}
                 </button>
              </nav>
              <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-2">Channels</h4>
