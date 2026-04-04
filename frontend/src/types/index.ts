@@ -3,40 +3,46 @@ export interface User {
   username: string;
   email?: string;
   avatar?: string;
-  count_elo?: number;
 }
 
-export interface Guild {
+export interface Channel {
   id: number;
   name: string;
-  description?: string;
-  owner_id: number;
-  unread?: boolean;
+  type: 'tactical' | 'unit' | 'global';
+  icon: string;
 }
 
 export interface Message {
-  id?: number;
-  channelId: number | string;
-  content: string;
+  channelId: number;
   userId: number;
   username: string;
-  created_at?: string;
+  content: string;
+  created_at: string;
+}
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface SnakeState {
+  snake1: Point[];
+  snake2: Point[];
+  food: Point;
+  score1: number;
+  score2: number;
+  countdown: number;
+  timeRemaining: number;
+  gameOver: boolean;
+  dir1: string;
+  dir2: string;
 }
 
 export interface Game {
   gameId: string;
-  gameType: 'snake' | 'pong' | 'trivia' | 'chess';
+  gameType: string;
   player1: string;
   player1Id: number;
   player2?: string;
-  status: 'waiting' | 'playing' | 'finished';
-}
-
-export interface SnakeState {
-  snake1: Array<{ x: number, y: number }>;
-  snake2: Array<{ x: number, y: number }>;
-  food: { x: number, y: number };
-  score1: number;
-  score2: number;
-  gameOver: boolean;
+  player2Id?: number;
 }

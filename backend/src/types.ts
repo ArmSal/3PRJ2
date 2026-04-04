@@ -36,7 +36,11 @@ export interface SnakeState {
   food: Point;
   score1: number;
   score2: number;
+  countdown: number;
+  timeRemaining: number;
   gameOver: boolean;
+  dir1: string;
+  dir2: string;
 }
 
 export interface PongState {

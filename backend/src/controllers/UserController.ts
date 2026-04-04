@@ -20,12 +20,23 @@ export class UserController {
 
   static async updateProfile(req: AuthRequest, res: Response) {
     if (!req.user) return res.status(401).json({ error: 'UNAUTHORIZED: Protocol update denied.' });
-    const { avatar } = req.body;
+    const { avatar, username } = req.body;
 
     try {
+      // Build dynamic SET clause so either field can be updated independently
+      const sets: string[] = [];
+      const values: any[] = [];
+      let idx = 1;
+
+      if (username) { sets.push(`username = $${idx++}`); values.push(username); }
+      if (avatar) { sets.push(`avatar = $${idx++}`); values.push(avatar); }
+
+      if (sets.length === 0) return res.status(400).json({ error: 'NO_CHANGES: Nothing to update.' });
+
+      values.push(req.user.id);
       const result = await query(
-        'UPDATE users SET avatar = $1 WHERE id = $2 RETURNING id, username, avatar',
-        [avatar, req.user.id]
+        `UPDATE users SET ${sets.join(', ')} WHERE id = $${idx} RETURNING id, username, email, avatar`,
+        values
       );
       res.json(result.rows[0]);
     } catch (err: any) {

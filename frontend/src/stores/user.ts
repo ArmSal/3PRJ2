@@ -84,6 +84,21 @@ export const useUserStore = defineStore('user', {
       localStorage.removeItem('user')
       localStorage.removeItem('token')
       delete axios.defaults.headers.common['Authorization']
+    },
+
+    async updateProfile(payload: { username?: string, avatar?: string }) {
+      try {
+        const { data } = await axios.put('/api/users/profile', payload)
+        // Sync returned data into local state
+        if (this.user) {
+          if (data.username) this.user.username = data.username
+          if (data.avatar) this.user.avatar = data.avatar
+          localStorage.setItem('user', JSON.stringify(this.user))
+        }
+        return { success: true, user: data }
+      } catch (err: any) {
+        return { success: false, error: err.response?.data?.error || 'Update failed' }
+      }
     }
   }
 })

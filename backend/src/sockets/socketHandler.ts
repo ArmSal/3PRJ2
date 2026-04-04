@@ -5,6 +5,7 @@ import snakeService from '../services/SnakeService';
 import pongService from '../services/PongService';
 import triviaService from '../services/TriviaService';
 import chessService from '../services/ChessService';
+import tttService from '../services/TicTacToeService';
 
 interface CustomSocket extends Socket {
   data: {
@@ -174,14 +175,15 @@ export default (io: Server) => {
       
       // Initialize the specific game service
       if (gameType === 'snake') {
-        snakeService.createGame(gameId);
+        snakeService.createGame(gameId, player1Id, socket.data.userId, io);
       } else if (gameType === 'pong') {
-        // player1 is the username passed from the frontend for the host
         pongService.createGame(gameId, player1Id, player1, socket.data.userId, socket.data.username, io);
       } else if (gameType === 'trivia') {
-        triviaService.createGame(gameId, player1Id, socket.data.userId, io);
+        triviaService.createGame(gameId, player1Id, player1, socket.data.userId, socket.data.username, io);
       } else if (gameType === 'chess') {
-        chessService.createGame(gameId, player1Id, socket.data.userId, io);
+        chessService.createGame(gameId, player1Id, player1, socket.data.userId, socket.data.username, io);
+      } else if (gameType === 'ttt') {
+        tttService.createGame(gameId, player1Id, player1, socket.data.userId, socket.data.username, io);
       }
 
       io.to(gameId).emit('game-started', { 
@@ -197,8 +199,7 @@ export default (io: Server) => {
     // --- GAME CONTROLS ---
     socket.on('snake-move', (data: { gameId: string, direction: string }) => {
       if (!socket.data.userId) return;
-      const state = snakeService.moveSnake(data.gameId, 1, data.direction); // Simplified player logic
-      if (state) io.to(data.gameId).emit('snake-state', state);
+      snakeService.setDirection(data.gameId, socket.data.userId, data.direction);
     });
 
     socket.on('pong-move', (data: { gameId: string, direction: 'up' | 'down' }) => {
@@ -214,9 +215,14 @@ export default (io: Server) => {
       triviaService.submitAnswer(data.gameId, socket.data.userId, data.answerIndex, io);
     });
 
-    socket.on('chess-move', (data: { gameId: string, from: any, to: any }) => {
+    socket.on('chess-move', (data: { gameId: string, pos: { x: number, y: number } }) => {
       if (!socket.data.userId) return;
-      chessService.move(data.gameId, socket.data.userId, data.from, data.to, io);
+      chessService.handleMove(data.gameId, socket.data.userId, data.pos, io);
+    });
+
+    socket.on('ttt-move', (data: { gameId: string, index: number }) => {
+      if (!socket.data.userId) return;
+      tttService.makeMove(data.gameId, socket.data.userId, data.index, io);
     });
 
     socket.on('disconnect', () => {

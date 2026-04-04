@@ -13,7 +13,8 @@ const games = ref([
   { id: 1, name: 'Pong Combat', description: 'Classic high-fidelity paddle warfare. Standard 1v1 protocol.', icon: '🏓', players: 42, status: 'active' as const, statusText: 'LIVE' },
   { id: 2, name: 'Snake Arena', description: 'Survival battle royale. Multi-unit neural growth simulation.', icon: '🐍', players: 12, status: 'active' as const, statusText: 'LIVE' },
   { id: 3, name: 'Trivia Intel', description: 'Knowledge-based cognitive combat. Real-time decryption.', icon: '❓', players: 8, status: 'beta' as const, statusText: 'BETA' },
-  { id: 4, name: 'Chess Matrix', description: 'Strategic grandmaster simulation. Zero-latency tactical board.', icon: '♟️', players: 4, status: 'new' as const, statusText: 'NEW' }
+  { id: 4, name: 'Chess Matrix', description: 'Strategic grandmaster simulation. Zero-latency tactical board.', icon: '♟️', players: 4, status: 'new' as const, statusText: 'NEW' },
+  { id: 5, name: 'Tic Tac Toe', description: 'Grid-based tactical occupation. Minimalist 3x3 matrix link.', icon: '❎', players: 2, status: 'new' as const, statusText: 'NEW' }
 ])
 
 onMounted(async () => {
@@ -22,12 +23,12 @@ onMounted(async () => {
 })
 
 const getIcon = (type: string) => {
-  const icons: Record<string, string> = { pong: '🏓', snake: '🐍', trivia: '❓', chess: '♟️' }
+  const icons: Record<string, string> = { pong: '🏓', snake: '🐍', trivia: '❓', chess: '♟️', ttt: '❎' }
   return icons[type] || '🎮'
 }
 
 const launchGame = (gameId: number) => {
-  const routes: Record<number, string> = { 1: 'pong', 2: 'snake', 3: 'trivia', 4: 'chess' }
+  const routes: Record<number, string> = { 1: 'pong', 2: 'snake', 3: 'trivia', 4: 'chess', 5: 'ttt' }
   router.push(`/app/${routes[gameId]}`)
 }
 

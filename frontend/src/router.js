@@ -9,6 +9,8 @@ import Spectator from './views/Spectator.vue'
 import Trivia from './views/Trivia.vue'
 import Tournaments from './views/Tournaments.vue'
 import Chess from './views/Chess.vue'
+import TicTacToe from './views/TicTacToe.vue'
+import Settings from './views/Settings.vue'
 
 const routes = [
   { path: '/', component: Landing },
@@ -26,8 +28,10 @@ const routes = [
       { path: 'snake', component: Snake },
       { path: 'trivia', component: Trivia },
       { path: 'chess', component: Chess },
+      { path: 'ttt', component: TicTacToe },
       { path: 'tournaments', component: Tournaments },
       { path: 'spectate/:id', component: Spectator },
+      { path: 'settings', component: Settings },
     ]
   }
 ]

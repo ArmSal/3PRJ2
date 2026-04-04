@@ -18,12 +18,12 @@ const myGameId = ref<string | null>(null)
 const inGame = ref(false)
 const isWaiting = ref(false)
 const gameOver = ref(false)
-const board = ref<string[][] | null>(null)
-const turn = ref<'w' | 'b'>('w')
+const board = ref<(string | null)[]>(Array(9).fill(null))
+const turn = ref<number | null>(null)
 const player1Name = ref('Operator_1')
 const player2Name = ref('Operator_2')
 const countdown = ref(5)
-const selected = ref<{ x: number, y: number } | null>(null)
+const winner = ref<number | null>(null)
 const showChatPopup = ref(false)
 
 // Toast & Volatile Chat state
@@ -61,14 +61,14 @@ const initSocket = () => {
   if (!socket) return
   socket.on('game-created', (data: { gameId: string }) => { myGameId.value = data.gameId; isWaiting.value = true })
   socket.on('game-started', (data: any) => { inGame.value = true; isWaiting.value = false; myGameId.value = data.gameId; player1Name.value = data.player1Name; player2Name.value = data.player2Name })
-  socket.on('chess-state', (state: any) => { board.value = state.board; turn.value = state.turn; countdown.value = state.countdown; gameOver.value = state.gameOver; selected.value = state.selected })
+  socket.on('ttt-state', (state: any) => { board.value = state.board; turn.value = state.turn; countdown.value = state.countdown; gameOver.value = state.gameOver; winner.value = state.winner })
 }
 
-const createGame = () => { if (!chatStore.selectedChannel) return; gameStore.socket?.emit('create-game', { channelId: chatStore.selectedChannel.id, gameType: 'chess' }) }
+const createGame = () => { if (!chatStore.selectedChannel) return; gameStore.socket?.emit('create-game', { channelId: chatStore.selectedChannel.id, gameType: 'ttt' }) }
 
-const joinGame = (game: any) => { gameStore.socket?.emit('join-game', { gameId: game.gameId, player1Id: game.player1Id, player1: game.player1 || game.player1Name, gameType: 'chess' }) }
+const joinGame = (game: any) => { gameStore.socket?.emit('join-game', { gameId: game.gameId, player1Id: game.player1Id, player1: game.player1 || game.player1Name, gameType: 'ttt' }) }
 
-const clickCell = (x: number, y: number) => { gameStore.socket?.emit('chess-move', { gameId: myGameId.value, pos: { x, y } }) }
+const makeMove = (index: number) => { gameStore.socket?.emit('ttt-move', { gameId: myGameId.value, index }) }
 
 const toggleVoice = async () => {
   if (voiceStore.isInVoice) voiceStore.leaveVoice(gameStore.socket)
@@ -86,31 +86,31 @@ const leaveGame = () => { inGame.value = false; isWaiting.value = false; gameOve
 <template>
   <div class="h-full w-full p-4 md:p-10 flex flex-col items-center overflow-y-auto custom-scrollbar relative animate-in zoom-in-95 duration-500 selection:bg-primary/20">
     <!-- HUD -->
-    <div class="w-full max-w-4xl flex flex-col md:flex-row justify-between items-center md:items-end mb-8 md:mb-12 gap-6 text-center md:text-left">
+    <div class="w-full max-w-2xl flex flex-col md:flex-row justify-between items-center md:items-end mb-8 md:mb-12 gap-6 text-center md:text-left">
        <div class="flex flex-col items-center md:items-start text-center md:text-left">
-          <div class="flex items-center gap-3 mb-2"><div :class="cn('w-2 h-2 rounded-full animate-ping', inGame ? 'bg-emerald-500' : 'bg-amber-500')"></div><span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic">{{ inGame ? 'Tactical Commander' : 'Wait Link' }}</span></div>
-          <h2 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white uppercase leading-none italic">Chess Matrix</h2>
+          <div class="flex items-center gap-3 mb-2"><div :class="cn('w-2 h-2 rounded-full animate-ping', inGame ? 'bg-emerald-500' : 'bg-amber-500')"></div><span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic">{{ inGame ? 'Tactical Execute' : 'Neural Link Idle' }}</span></div>
+          <h2 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white uppercase leading-none italic">Tic Tac Toe</h2>
        </div>
-       <div v-if="inGame" class="flex items-center gap-6 md:gap-10 glass-blur px-6 md:px-10 py-3 md:py-4 rounded-2xl border border-white/5 shadow-2xl">
-          <div class="flex flex-col items-center"><span :class="cn('text-[8px] font-black uppercase tracking-widest mb-1', turn === 'w' ? 'text-emerald-500' : 'text-slate-600')">{{ player1Name }} (W)</span><span class="text-xl md:text-2xl font-black italic text-white">{{ turn === 'w' ? 'ACTIVE' : 'WAIT' }}</span></div>
-          <div class="text-slate-700 font-bold italic text-xl md:text-2xl">VS</div>
-          <div class="flex flex-col items-center"><span :class="cn('text-[8px] font-black uppercase tracking-widest mb-1', turn === 'b' ? 'text-blue-500' : 'text-slate-600')">{{ player2Name }} (B)</span><span class="text-xl md:text-2xl font-black italic text-white">{{ turn === 'b' ? 'ACTIVE' : 'WAIT' }}</span></div>
+       <div v-if="inGame" class="flex items-center gap-6 glass-blur px-6 py-3 rounded-2xl border border-white/5 shadow-2xl">
+          <div class="flex flex-col items-center"><span :class="cn('text-[8px] font-black uppercase tracking-widest mb-1', turn === 1 ? 'text-emerald-500' : 'text-slate-600')">{{ player1Name }} (X)</span><span class="text-2xl font-black italic text-white">{{ turn === 1 ? 'ACTIVE' : 'WAIT' }}</span></div>
+          <div class="text-slate-700 font-bold italic text-xl">VS</div>
+          <div class="flex flex-col items-center"><span :class="cn('text-[8px] font-black uppercase tracking-widest mb-1', turn !== 1 ? 'text-blue-500' : 'text-slate-600')">{{ player2Name }} (O)</span><span class="text-2xl font-black italic text-white">{{ turn !== 1 ? 'ACTIVE' : 'WAIT' }}</span></div>
        </div>
     </div>
     
     <!-- LOBBY -->
-    <div v-if="!inGame" class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div v-if="!inGame" class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
       <div v-if="!isWaiting" class="glass-blur p-8 rounded-[32px] border border-white/5 flex flex-col justify-between group overflow-hidden relative min-h-[280px]">
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-        <div><h3 class="text-xl font-black italic uppercase text-white mb-4">Initialize Encounter</h3><p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Protocol: Establish zero-latency global board link. Execute simulations.</p></div>
+        <div><h3 class="text-xl font-black italic uppercase text-white mb-4">Initialize Grid Link</h3><p class="text-xs font-bold text-slate-500 uppercase tracking-wide italic">Protocol: Establish 3x3 tactical matrix. Awaiting Challenger signature.</p></div>
         <button @click="createGame" class="mt-10 px-8 py-4 bg-primary text-white rounded-2xl font-black italic uppercase tracking-widest text-xs shadow-xl transition-all">INITIALIZE⚡</button>
       </div>
       <div v-else class="glass-blur p-8 rounded-[32px] border border-white/5 flex flex-col items-center justify-center text-center"><div class="flex gap-2 mb-6"><div class="w-2 h-2 bg-primary rounded-full animate-bounce"></div><div class="w-2 h-2 bg-primary rounded-full animate-bounce delay-150"></div><div class="w-2 h-2 bg-primary rounded-full animate-bounce delay-300"></div></div><h3 class="text-xl font-black italic text-white uppercase italic tracking-tighter">Broadcasting Link Signature</h3></div>
       <div class="glass-blur p-8 rounded-[32px] border border-white/5">
-        <h3 class="text-xl font-black italic uppercase tracking-tighter text-white mb-6">Active Grandmasters</h3>
-        <div v-if="gameStore.availableGames.filter((g: any) => g.gameType === 'chess').length === 0" class="py-12 flex flex-col items-center text-slate-700 opacity-40"><span class="text-4xl mb-4">♟️</span><span class="text-[10px] font-black uppercase tracking-[0.2em]">Scanning intelligence...</span></div>
+        <h3 class="text-xl font-black italic uppercase tracking-tighter text-white mb-6">Active Signatures</h3>
+        <div v-if="gameStore.availableGames.filter((g: any) => g.gameType === 'ttt').length === 0" class="py-12 flex flex-col items-center text-slate-700 opacity-40"><span class="text-4xl mb-4">❎</span><span class="text-[10px] font-black uppercase tracking-[0.2em]">Scanning for intelligence...</span></div>
         <div v-else class="space-y-3">
-          <div v-for="game in gameStore.availableGames.filter((g: any) => g.gameType === 'chess')" :key="game.gameId" class="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-primary/20 transition-all items-center">
+          <div v-for="game in (gameStore.availableGames.filter((g: any) => g.gameType === 'ttt') as any[])" :key="game.gameId" class="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-primary/20 transition-all items-center">
              <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center font-black italic text-slate-400">H</div><span class="text-xs font-black italic text-white uppercase">{{ game.player1 }}</span></div>
              <button @click="joinGame(game)" class="px-5 py-2 bg-slate-800 text-[9px] font-black italic uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all shadow-xl">CHALLENGE</button>
           </div>
@@ -118,19 +118,13 @@ const leaveGame = () => { inGame.value = false; isWaiting.value = false; gameOve
       </div>
     </div>
     
-    <!-- CHESS ARENA -->
-    <div v-else class="relative animate-in zoom-in-95 duration-700 w-full max-w-4xl flex flex-col items-center">
-       <div class="relative bg-black p-4 rounded-[40px] border-4 border-slate-900 shadow-2xl overflow-hidden">
-          <div class="grid grid-cols-8 gap-1 bg-slate-900 p-1 border-8 border-slate-800 rounded-2xl overflow-hidden min-w-[320px] md:min-w-[480px]">
-             <template v-if="board">
-                <div v-for="(row, y) in board" :key="y" class="contents">
-                   <div v-for="(cell, x) in row" :key="x" @click="clickCell(x, y)" :class="cn('w-full aspect-square flex items-center justify-center text-3xl md:text-4xl cursor-pointer transition-all', (x+y)%2===1 ? 'bg-[#1e293b]' : 'bg-[#334155]', selected?.x === x && selected?.y === y ? 'bg-primary/40 ring-4 ring-primary ring-inset' : 'hover:bg-primary/20')">
-                      <span :class="cn('drop-shadow-lg', cell === cell.toUpperCase() ? 'text-white' : 'text-black')">
-                         {{ cell ? (cell==='p'?'♟':(cell==='r'?'♜':(cell==='n'?'♞':(cell==='b'?'♝':(cell==='q'?'♛':(cell==='k'?'♚':(cell==='P'?'♙':(cell==='R'?'♖':(cell==='N'?'♘':(cell==='B'?'♗':(cell==='Q'?'♕':'♔'))))))))))) : '' }}
-                      </span>
-                   </div>
-                </div>
-             </template>
+    <!-- TTT ARENA -->
+    <div v-else class="relative animate-in zoom-in-95 duration-700 w-full max-w-md flex flex-col items-center">
+       <div class="relative bg-black rounded-[40px] p-6 md:p-8 border-4 border-slate-900 shadow-2xl overflow-hidden aspect-square w-full">
+          <div class="grid grid-cols-3 gap-3 h-full">
+             <div v-for="(cell, i) in board" :key="i" @click="makeMove(i)" :class="cn('flex items-center justify-center text-5xl font-black transition-all cursor-pointer rounded-2xl border border-white/5 bg-slate-900/50 hover:bg-slate-800', cell === 'X' ? 'text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : (cell === 'O' ? 'text-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.2)]' : ''))">
+                {{ cell }}
+             </div>
           </div>
 
           <!-- TOAST OVERLAY (Standardized) -->
@@ -150,8 +144,8 @@ const leaveGame = () => { inGame.value = false; isWaiting.value = false; gameOve
           <div v-if="gameOver" class="absolute inset-0 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-500 p-8 rounded-[36px] z-[60]">
              <div class="mb-6 flex flex-col items-center text-center">
                 <div class="text-6xl mb-6 animate-bounce">👑</div>
-                <h3 class="text-4xl md:text-5xl font-black italic tracking-tighter text-white uppercase leading-tight mb-4">Neural Sovereignty<br/><span class="text-primary">{{ turn === 'w' ? player2Name : player1Name }} Victory</span></h3>
-                <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest">King Terminated Successfully</div>
+                <h3 class="text-4xl font-black italic tracking-tighter text-white uppercase leading-tight mb-2">Neural Dominance<br/><span class="text-primary">{{ winner === 1 ? player1Name : (winner ? player2Name : 'Protocol Draw') }}</span></h3>
+                <div v-if="winner" class="text-xs font-black text-slate-600 uppercase tracking-[0.2em] mb-6 italic">Grid Occupied Successfully</div>
              </div>
              <button @click="leaveGame" class="px-12 py-4 bg-primary text-white rounded-2xl font-black italic uppercase tracking-widest text-[10px] shadow-2xl hover:scale-105 active:scale-95 transition-all">RETURN TO NEXUS</button>
           </div>
@@ -175,7 +169,7 @@ const leaveGame = () => { inGame.value = false; isWaiting.value = false; gameOve
                 <span class="text-[7px] font-black text-primary uppercase italic mb-0.5">{{ msg.username }}</span>
                 <p class="text-[11px] text-white leading-tight uppercase font-bold">{{ msg.content }}</p>
              </div>
-             <div v-if="volatileMessages.length === 0" class="text-center py-4 opacity-5"><span class="text-[8px] font-black uppercase italic tracking-widest">Idle Intelligence</span></div>
+             <div v-if="volatileMessages.length === 0" class="text-center py-4 opacity-5"><span class="text-[8px] font-black uppercase italic tracking-widest">No Signals</span></div>
           </div>
           <input @keyup.enter="(e: any) => { sendQuickMessage(e.target.value); e.target.value = '' }" type="text" placeholder="Protocol input..." class="w-full bg-slate-900 border border-white/5 rounded-xl p-3 text-[10px] font-black outline-none focus:border-primary text-slate-400 italic uppercase" />
        </div>
@@ -184,7 +178,6 @@ const leaveGame = () => { inGame.value = false; isWaiting.value = false; gameOve
 </template>
 
 <style scoped>
-.contents { display: contents; }
 .custom-scrollbar::-webkit-scrollbar { width: 2px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 </style>
