@@ -2,11 +2,15 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useGameStore } from '@/stores/game'
 import { useUserStore } from '@/stores/user'
+import { useChatStore } from '@/stores/chat'
+import { useVoiceStore } from '@/stores/voice'
 import { cn } from '@/lib/utils'
 import type { SnakeState } from '@/types'
 
 const gameStore = useGameStore()
 const userStore = useUserStore()
+const chatStore = useChatStore()
+const voiceStore = useVoiceStore()
 
 const snakeCanvas = ref<HTMLCanvasElement | null>(null)
 const ctx = ref<CanvasRenderingContext2D | null>(null)
@@ -16,6 +20,7 @@ const inGame = ref(false)
 const loading = ref(false)
 const myGameId = ref<string | null>(null)
 const playerRole = ref<'Player 1' | 'Player 2' | ''>('')
+const showChatPopup = ref(false)
 const score1 = ref(0)
 const score2 = ref(0)
 
@@ -90,6 +95,25 @@ const leaveGame = () => {
   myGameId.value = null
   playerRole.value = ''
   gameState.value.gameOver = false
+}
+
+const toggleVoice = async () => {
+  if (voiceStore.isInVoice) {
+    voiceStore.leaveVoice(gameStore.socket)
+  } else if (chatStore.selectedChannel) {
+    await voiceStore.joinVoice(chatStore.selectedChannel.id, gameStore.socket)
+  }
+}
+
+const sendQuickMessage = (content: string) => {
+  if (!chatStore.selectedChannel || !content.trim()) return
+  gameStore.socket?.emit('send-message', {
+    channelId: chatStore.selectedChannel.id,
+    content,
+    userId: userStore.currentUserId,
+    username: userStore.user?.username || 'Unknown',
+    token: userStore.token
+  })
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
@@ -216,12 +240,12 @@ const gameLoop = () => {
       
       <div class="glass-blur p-8 rounded-[32px] border border-white/5">
         <h3 class="text-xl font-black italic uppercase tracking-tighter text-white mb-6">Active Lobbies</h3>
-        <div v-if="gameStore.availableGames.filter(g => g.gameType === 'snake').length === 0" class="py-12 flex flex-col items-center text-slate-700">
+        <div v-if="gameStore.availableGames.filter((g: any) => g.gameType === 'snake').length === 0" class="py-12 flex flex-col items-center text-slate-700">
            <span class="text-4xl mb-4 grayscale opacity-30">📡</span>
            <span class="text-[10px] font-black uppercase tracking-[0.2em]">Searching for neural signatures...</span>
         </div>
         <div v-else class="space-y-4">
-          <div v-for="game in gameStore.availableGames.filter(g => g.gameType === 'snake')" :key="game.gameId" class="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-primary/30 transition-all group">
+          <div v-for="game in (gameStore.availableGames.filter((g: any) => g.gameType === 'snake') as any[])" :key="game.gameId" class="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-primary/30 transition-all group">
              <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-black italic border border-indigo-500/20">
                    {{ game.player1.charAt(0) }}
@@ -256,6 +280,35 @@ const gameLoop = () => {
              <button @click="leaveGame" class="px-10 py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black italic uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all shadow-2xl">
                 RETURN TO NEXUS
              </button>
+          </div>
+
+          <!-- IN-GAME COMMS -->
+          <div v-if="inGame && !gameState.gameOver" class="absolute bottom-6 right-6 flex flex-col gap-3 z-30">
+             <button @click="toggleVoice" :class="cn('w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl', voiceStore.isInVoice ? 'bg-emerald-600 text-white animate-pulse' : 'bg-black/60 border border-white/10 text-slate-400 hover:text-white')">
+                {{ voiceStore.isInVoice ? '🎙️' : '🔇' }}
+             </button>
+             <button @click="showChatPopup = !showChatPopup" class="w-12 h-12 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl">
+                💬
+             </button>
+          </div>
+
+          <!-- QUICK CHAT OVERLAY -->
+          <div v-if="showChatPopup" class="absolute bottom-20 right-6 w-80 h-96 bg-[#0b0d14]/95 border border-white/10 rounded-[32px] backdrop-blur-xl z-40 p-5 flex flex-col shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+             <div class="flex items-center justify-between mb-4 px-2">
+                <span class="text-[9px] font-black uppercase text-slate-500 tracking-widest italic">Signal Intel</span>
+                <button @click="showChatPopup = false" class="text-slate-600 hover:text-white transition-colors">✕</button>
+             </div>
+             <div class="flex-1 overflow-y-auto custom-scrollbar mb-4 space-y-3 px-2">
+                <div v-for="(msg, i) in chatStore.messages.slice(-15)" :key="i" class="flex flex-col">
+                   <div class="flex items-center gap-2 mb-1">
+                      <span class="text-[8px] font-black text-primary uppercase italic">{{ msg.username }}</span>
+                   </div>
+                   <p class="text-[11px] text-slate-300 leading-tight">{{ msg.content }}</p>
+                </div>
+             </div>
+             <div class="mt-auto">
+                <input @keyup.enter="(e: any) => { sendQuickMessage(e.target.value); e.target.value = '' }" type="text" placeholder="Intelligence input..." class="w-full bg-black/40 border border-white/5 rounded-xl p-3 text-[10px] font-bold outline-none focus:border-primary transition-all uppercase italic" />
+             </div>
           </div>
        </div>
 

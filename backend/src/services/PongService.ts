@@ -4,7 +4,9 @@ import { Server } from 'socket.io';
 interface PongState {
   gameId: string;
   player1: number;
+  player1Name: string;
   player2: number;
+  player2Name: string;
   ball: { x: number, y: number, vx: number, vy: number, radius: number };
   paddle1Y: number;
   paddle2Y: number;
@@ -22,11 +24,13 @@ export class PongService {
   private readonly PADDLE_HEIGHT = 100;
   private readonly PADDLE_WIDTH = 10;
 
-  createGame(gameId: string, player1: number, player2: number, io: Server): PongState {
+  createGame(gameId: string, player1Id: number, player1Name: string, player2Id: number, player2Name: string, io: Server): PongState {
     const state: PongState = {
       gameId,
-      player1,
-      player2,
+      player1: player1Id,
+      player1Name,
+      player2: player2Id,
+      player2Name,
       ball: { x: 400, y: 200, vx: 5, vy: 3, radius: 8 },
       paddle1Y: 150,
       paddle2Y: 150,
@@ -106,6 +110,8 @@ export class PongService {
       paddle2: { y: state.paddle2Y, height: this.PADDLE_HEIGHT, width: this.PADDLE_WIDTH },
       score1: state.score1,
       score2: state.score2,
+      player1Name: state.player1Name,
+      player2Name: state.player2Name,
       countdown: Math.max(0, Math.ceil(state.countdown)),
       gameOver: state.gameOver
     });

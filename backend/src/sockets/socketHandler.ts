@@ -166,9 +166,9 @@ export default (io: Server) => {
       }
     });
 
-    socket.on('join-game', (data: { gameId: string, player1Id: number, gameType: string }) => {
-      if (!socket.data.userId) return;
-      const { gameId, player1Id, gameType } = data;
+    socket.on('join-game', (data: { gameId: string, player1Id: number, player1: string, gameType: string }) => {
+      if (!socket.data.userId || !socket.data.username) return;
+      const { gameId, player1Id, player1, gameType } = data;
       
       socket.join(gameId);
       
@@ -176,7 +176,8 @@ export default (io: Server) => {
       if (gameType === 'snake') {
         snakeService.createGame(gameId);
       } else if (gameType === 'pong') {
-        pongService.createGame(gameId, player1Id, socket.data.userId, io);
+        // player1 is the username passed from the frontend for the host
+        pongService.createGame(gameId, player1Id, player1, socket.data.userId, socket.data.username, io);
       } else if (gameType === 'trivia') {
         triviaService.createGame(gameId, player1Id, socket.data.userId, io);
       } else if (gameType === 'chess') {
@@ -187,7 +188,9 @@ export default (io: Server) => {
         gameId, 
         gameType, 
         player1: player1Id, 
-        player2: socket.data.userId 
+        player1Name: player1,
+        player2: socket.data.userId,
+        player2Name: socket.data.username
       });
     });
 

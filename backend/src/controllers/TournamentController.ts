@@ -12,7 +12,14 @@ export class TournamentController {
         'INSERT INTO tournaments (name, description, game_type, campus1, campus2, max_participants, created_by, starts_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
         [name, description, gameType, campus1, campus2, maxParticipants || 16, req.user.id, new Date(startsAt)]
       );
-      res.json({ id: result.rows[0]?.id });
+      
+      const tournamentId = result.rows[0]?.id;
+      
+      // AUTOMATIC JOIN: Add creator as Player 1
+      await query('INSERT INTO tournament_participants (tournament_id, user_id, campus) VALUES ($1, $2, $3)',
+        [tournamentId, req.user.id, campus1 || 'Paris-Nexus']);
+        
+      res.json({ id: tournamentId });
     } catch (err: any) {
       res.status(400).json({ error: 'TOURNAMENT_FAILURE: Could not initialize bracket protocol.' });
     }
