@@ -12,6 +12,7 @@ import Chess from './views/Chess.vue'
 import TicTacToe from './views/TicTacToe.vue'
 import Settings from './views/Settings.vue'
 import Leaderboard from './views/Leaderboard.vue'
+import Admin from './views/Admin.vue'
 
 const routes = [
   { path: '/', component: Landing },
@@ -34,6 +35,7 @@ const routes = [
       { path: 'spectate/:id', component: Spectator },
       { path: 'settings', component: Settings },
       { path: 'leaderboard', component: Leaderboard },
+      { path: 'admin', component: Admin }
     ]
   }
 ]

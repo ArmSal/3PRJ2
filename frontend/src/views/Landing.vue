@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
 const stats = [
@@ -7,6 +9,17 @@ const stats = [
   { label: 'Neural Matches', value: '12.8K' },
   { label: 'Lobby Latency', value: '14ms' },
 ]
+
+const notifications = ref<any[]>([])
+
+onMounted(async () => {
+  try {
+    const { data } = await axios.get('/api/notifications')
+    notifications.value = data
+  } catch (e) {
+    console.error('Failed to grab public broadcasts', e)
+  }
+})
 </script>
 
 <template>
@@ -40,6 +53,27 @@ const stats = [
       <div class="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-10 group cursor-default">
         <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
         <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-primary transition-colors">Neural Network Online</span>
+      </div>
+      
+      <!-- Public Broadcast Ticker -->
+      <div v-if="notifications.length > 0" class="w-full max-w-3xl bg-black/40 border border-white/5 p-4 rounded-2xl backdrop-blur-md mb-12 flex items-center gap-4 overflow-hidden shadow-2xl">
+         <div class="flex items-center gap-2 flex-shrink-0 pr-4 border-r border-white/10">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-red-500">Global Broadcast</span>
+         </div>
+         <div class="flex-1 overflow-hidden relative" style="mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);">
+            <div class="flex items-center gap-8 animate-marquee whitespace-nowrap">
+               <div v-for="n in notifications.slice(0,3)" :key="n.id" class="flex items-center gap-3">
+                  <span class="text-xs font-black italic uppercase text-white">{{ n.title }}:</span>
+                  <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ n.content }}</span>
+               </div>
+               <!-- Duplicated for seamless loop -->
+               <div v-for="n in notifications.slice(0,3)" :key="n.id + '_copy'" class="flex items-center gap-3">
+                  <span class="text-xs font-black italic uppercase text-white">{{ n.title }}:</span>
+                  <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ n.content }}</span>
+               </div>
+            </div>
+         </div>
       </div>
 
       <!-- Hero Title -->
@@ -90,5 +124,15 @@ const stats = [
 @keyframes pulse-soft {
   0%, 100% { opacity: 0.2; }
   50% { opacity: 0.4; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+  width: max-content;
 }
 </style>

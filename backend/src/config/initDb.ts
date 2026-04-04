@@ -114,6 +114,18 @@ const initDb = async (): Promise<void> => {
       )
     `);
 
+    // Notifications (admin-created announcements)
+    await query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        content TEXT NOT NULL,
+        type VARCHAR(30) DEFAULT 'info',
+        created_by INTEGER REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Ensure a default guild exists for immediate communication
     const guildCheck = await query('SELECT count(*) FROM guilds');
     if (parseInt(guildCheck.rows[0].count) === 0) {
@@ -169,6 +181,18 @@ const initDb = async (): Promise<void> => {
         ['fedi', 'fedi@test.com', fediHash]
       );
       console.log('✅ fedi created');
+    }
+
+    // admin:admin (platform administrator)
+    const adminCheck = await query('SELECT username FROM users WHERE username = $1', ['admin']);
+    if (adminCheck.rows.length === 0) {
+      console.log('🌱 Creating admin user...');
+      const adminHash = await bcrypt.hash('admin', 10);
+      await query(
+        'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)',
+        ['admin', 'admin@gamingplus.io', adminHash]
+      );
+      console.log('✅ admin created');
     }
 
     console.log('✅ DATABASE OPERATIONAL: All schemas synchronized.');
