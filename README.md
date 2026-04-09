@@ -78,16 +78,16 @@ docker compose up --build
 - gestion d’authentification/token
 - prévention injection SQL (ORM + prepared statements déjà en partie via `?`)
 
-## � Équipe
+##  Équipe
 
 | Rôle | Nom | GitHub |
 |------|-----|--------|
 | **C - DevOps** | Armend SALIHU | [@ArmSal](https://github.com/ArmSal) |
-| **B - Backend** | Babikir IBRAHIM AL KHALIL | - |
+| **B - Backend** | Babikir IBRAHIM AL KHALIL | [@babikir](https://github.com/babikir) |
 | **A - Frontend** | Fedi Khaldi | [@fedi005](https://github.com/fedi005) |
 | **D - Data/Jeu** | Abid RAKHIS AHMAT | [@abidrakhis6-cloud](https://github.com/abidrakhis6-cloud) |
 
-## �🛠 Plan d'action par rôle
+## 🛠 Plan d'action par rôle
 
 - **A (Front) - Fedi Khaldi**
   - renommer en multi-canaux, vrai composants Vue, Tailwind complet, design Discord (navbar, salon/chat/avatar)

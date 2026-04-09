@@ -13,7 +13,7 @@
 
 ### Après-midi 14h-17h
 - ✅ GitHub repo créé
-- ✅ Docker configuré
+- ✅ Docker configuré run_local.ps1
 - ✅ Backend déployé : https://gaming-backend-wj18.onrender.com
 - ✅ Frontend déployé : https://gaming-frontend-gtzd.onrender.com
 
