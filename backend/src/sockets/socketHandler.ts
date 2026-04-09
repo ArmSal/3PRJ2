@@ -20,7 +20,7 @@ export default (io: Server) => {
   io.on('connection', (socket: CustomSocket) => {
     console.log('⚡ NEURAL LINK ESTABLISHED:', socket.id);
 
-    socket.on('authenticate', (token: string) => {
+    socket.on('authenticate', (token: string) => {  
       try {
         const secret = process.env.JWT_SECRET || 'hackathon-jury-key-2024';
         const decoded = jwt.verify(token, secret) as { id: number, username: string };

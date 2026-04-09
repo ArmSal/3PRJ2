@@ -37,11 +37,6 @@ onMounted(async () => {
         <span class="text-3xl">🎮</span>
         <h1 class="text-xl font-black italic tracking-tighter uppercase">Gaming Plus</h1>
       </div>
-      <div class="hidden md:flex items-center gap-10">
-        <a v-for="link in ['Network', 'Arenas', 'Bounties', 'Docs']" :key="link" href="#" class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all">
-          {{ link }}
-        </a>
-      </div>
       <button @click="router.push('/login')" class="bg-primary/10 border border-primary/20 text-primary px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-lg shadow-primary/10 active:scale-95">
         Terminal Access
       </button>

@@ -1,5 +1,6 @@
 import { query } from '../config/db';
 import { Server } from 'socket.io';
+import { Chess } from 'chess.js';
 
 interface ChessState {
   gameId: string;
@@ -7,6 +8,7 @@ interface ChessState {
   player1Name: string;
   player2: number;
   player2Name: string;
+  engine: Chess;
   board: string[][];
   turn: 'w' | 'b';
   countdown: number;
@@ -18,27 +20,44 @@ interface ChessState {
 export class ChessService {
   private games: Map<string, ChessState> = new Map();
 
-  private initialBoard(): string[][] {
-    return [
-      ['r','n','b','q','k','b','n','r'],
-      ['p','p','p','p','p','p','p','p'],
-      ['','','','','','','',''],
-      ['','','','','','','',''],
-      ['','','','','','','',''],
-      ['','','','','','','',''],
-      ['P','P','P','P','P','P','P','P'],
-      ['R','N','B','Q','K','B','N','R']
-    ];
+  private coordsToSquare(x: number, y: number): string {
+    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const rank = 8 - y;
+    return `${files[x]}${rank}`;
+  }
+
+  private getBoard(engine: Chess): string[][] {
+    const freshBoard = engine.board();
+    const result: string[][] = [];
+    for (let i = 0; i < 8; i++) {
+        const row: string[] = [];
+        for (let j = 0; j < 8; j++) {
+            const pieceObj = freshBoard[i][j];
+            if (!pieceObj) {
+                row.push('');
+            } else {
+                if (pieceObj.color === 'w') {
+                    row.push(pieceObj.type.toUpperCase());
+                } else {
+                    row.push(pieceObj.type.toLowerCase());
+                }
+            }
+        }
+        result.push(row);
+    }
+    return result;
   }
 
   createGame(gameId: string, player1Id: number, player1Name: string, player2Id: number, player2Name: string, io: Server): ChessState {
+    const engine = new Chess();
     const state: ChessState = {
       gameId,
       player1: player1Id,
       player1Name,
       player2: player2Id,
       player2Name,
-      board: this.initialBoard(),
+      engine,
+      board: this.getBoard(engine),
       turn: 'w',
       countdown: 5,
       gameOver: false,
@@ -65,8 +84,8 @@ export class ChessService {
     if (!state || state.gameOver || state.countdown > 0) return;
 
     const isWhite = userId === state.player1;
-    if (isWhite && state.turn !== 'w') return;
-    if (!isWhite && state.turn !== 'b') return;
+    if (isWhite && state.engine.turn() !== 'w') return;
+    if (!isWhite && state.engine.turn() !== 'b') return;
 
     // Selection Phase
     if (!state.selected) {
@@ -81,24 +100,53 @@ export class ChessService {
 
     // Move Phase
     const from = state.selected;
-    const piece = state.board[from.y][from.x];
-    const target = state.board[pos.y][pos.x];
+    const fromSquare = this.coordsToSquare(from.x, from.y);
+    const toSquare = this.coordsToSquare(pos.x, pos.y);
 
-    // Simple Move logic (Standard rules assumed handled by frontend validation later, 
-    // but here we just process the strike for MVP)
-    if (target && target.toLowerCase() === 'k') {
-      state.board[pos.y][pos.x] = piece;
-      state.board[from.y][from.x] = '';
-      state.gameOver = true;
-      this.endGame(gameId, userId, io);
-    } else {
-      state.board[pos.y][pos.x] = piece;
-      state.board[from.y][from.x] = '';
-      state.turn = state.turn === 'w' ? 'b' : 'w';
+    try {
+        const move = state.engine.move({
+            from: fromSquare,
+            to: toSquare,
+            promotion: 'q'
+        });
+        
+        if (move) {
+           state.board = this.getBoard(state.engine);
+           state.turn = state.engine.turn();
+           state.selected = null;
+           
+           if (state.engine.isGameOver()) {
+               state.gameOver = true;
+               if (state.engine.isCheckmate()) {
+                    this.endGame(gameId, userId, io);
+               } else {
+                    if (state.interval) clearInterval(state.interval);
+                    io.to(gameId).emit('chess-state', {
+                      ...state,
+                      gameOver: true
+                    });
+               }
+           }
+           this.broadcastState(gameId, io);
+        } else {
+           throw new Error("Invalid move returned null");
+        }
+    } catch (e) {
+        // Handle invalid move target, might just be clicking a different piece to select it
+        const targetPiece = state.board[pos.y][pos.x];
+        if (targetPiece) {
+            if (isWhite && targetPiece === targetPiece.toUpperCase()) {
+                state.selected = pos;
+            } else if (!isWhite && targetPiece === targetPiece.toLowerCase()) {
+                state.selected = pos;
+            } else {
+                state.selected = null;
+            }
+        } else {
+            state.selected = null;
+        }
+        this.broadcastState(gameId, io);
     }
-
-    state.selected = null;
-    this.broadcastState(gameId, io);
   }
 
   private broadcastState(gameId: string, io: Server): void {
