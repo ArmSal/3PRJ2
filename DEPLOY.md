@@ -8,7 +8,7 @@
 - Compte GitHub avec accès au repo https://github.com/ArmSal/3PRJ2
 
 ## Lancer le projet localement
-
+a
 ```bash
 # Cloner le repo
 git clone https://github.com/ArmSal/3PRJ2.git
